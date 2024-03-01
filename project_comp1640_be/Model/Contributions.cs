@@ -43,7 +43,7 @@ namespace project_comp1640_be.Model
 
     public enum IsSelected
     {
-        Selected, Unselected, 
+        Selected, Unselected
     }
 
     public enum IsView 
