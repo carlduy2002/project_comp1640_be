@@ -12,6 +12,8 @@ namespace project_comp1640_be.Model
         [Required]
         public string faculty_name { get; set; }
 
-        public ICollection<Contributions> faculties { get; set; }
+        public ICollection<Contributions> contributions { get; set; }
+
+        public ICollection<Users> users { get; set; }
     }
 }

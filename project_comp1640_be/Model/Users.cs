@@ -30,10 +30,9 @@ namespace project_comp1640_be.Model
 
         public DateTime reset_password_exprytime { get; set; }
         public user_status account_status { get; set; } = user_status.Unlock;
-        public role role { get; set; }
         public string? user_avatar { get; set; }
 
-        public ICollection<Contributions> faculties { get; set; }
+        public ICollection<Contributions> Contributions { get; set; }
         public ICollection<Marketing_Comments> Marketing_Comments { get; set; }
 
     }
@@ -42,9 +41,4 @@ namespace project_comp1640_be.Model
     {
         Lock, Unlock
     }
-    public enum role
-    {
-        Marketing_Manager, Marketing_Coordinator, Admin, Student, Guest
-    }
-}
 }
