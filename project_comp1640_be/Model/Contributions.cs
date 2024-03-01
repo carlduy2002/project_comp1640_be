@@ -25,9 +25,13 @@ namespace project_comp1640_be.Model
 
         public IsSelected IsSelected { get; set; }
 
+        public IsView IsView { get; set; }
+
         public virtual Users? users { get; set; }
 
         public virtual Faculties? faculties { get; set; }
+
+        public virtual Academic_Years? academic_years { get; set; }
 
         public ICollection<Marketing_Comments> Marketing_Comments { get; set; }
     }
@@ -39,7 +43,13 @@ namespace project_comp1640_be.Model
 
     public enum IsSelected
     {
-        Selected, Unselected
+        Selected, Unselected, 
     }
-}
+
+    public enum IsView 
+    {
+        View, Unview
+    }
+
+
 }
