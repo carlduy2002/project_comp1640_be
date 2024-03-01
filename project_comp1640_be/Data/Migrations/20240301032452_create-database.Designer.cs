@@ -12,8 +12,8 @@ using project_comp1640_be.Data;
 namespace projectcomp1640be.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240301022718_update-database")]
-    partial class updatedatabase
+    [Migration("20240301032452_create-database")]
+    partial class createdatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -65,7 +65,7 @@ namespace projectcomp1640be.Data.Migrations
                     b.Property<int>("IsView")
                         .HasColumnType("int");
 
-                    b.Property<int?>("academic_yearsacademic_year_id")
+                    b.Property<int>("academic_yearsacademic_year_id")
                         .HasColumnType("int");
 
                     b.Property<string>("contribution_content")
@@ -83,17 +83,12 @@ namespace projectcomp1640be.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("facultiesfaculty_id")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("usersuser_id")
+                    b.Property<int>("usersuser_id")
                         .HasColumnType("int");
 
                     b.HasKey("contribution_id");
 
                     b.HasIndex("academic_yearsacademic_year_id");
-
-                    b.HasIndex("facultiesfaculty_id");
 
                     b.HasIndex("usersuser_id");
 
@@ -132,10 +127,10 @@ namespace projectcomp1640be.Data.Migrations
                     b.Property<DateTime>("comment_date")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("contributionscontribution_id")
+                    b.Property<int>("contributionscontribution_id")
                         .HasColumnType("int");
 
-                    b.Property<int?>("usersuser_id")
+                    b.Property<int>("usersuser_id")
                         .HasColumnType("int");
 
                     b.HasKey("comment_id");
@@ -171,9 +166,6 @@ namespace projectcomp1640be.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("user_id"));
-
-                    b.Property<int>("account_status")
-                        .HasColumnType("int");
 
                     b.Property<int>("facultiesfaculty_id")
                         .HasColumnType("int");
@@ -212,6 +204,9 @@ namespace projectcomp1640be.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("user_status")
+                        .HasColumnType("int");
+
                     b.Property<string>("user_username")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -230,19 +225,17 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     b.HasOne("project_comp1640_be.Model.Academic_Years", "academic_years")
                         .WithMany("contributions")
-                        .HasForeignKey("academic_yearsacademic_year_id");
-
-                    b.HasOne("project_comp1640_be.Model.Faculties", "faculties")
-                        .WithMany("contributions")
-                        .HasForeignKey("facultiesfaculty_id");
+                        .HasForeignKey("academic_yearsacademic_year_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("project_comp1640_be.Model.Users", "users")
                         .WithMany("Contributions")
-                        .HasForeignKey("usersuser_id");
+                        .HasForeignKey("usersuser_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("academic_years");
-
-                    b.Navigation("faculties");
 
                     b.Navigation("users");
                 });
@@ -251,11 +244,15 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     b.HasOne("project_comp1640_be.Model.Contributions", "contributions")
                         .WithMany("Marketing_Comments")
-                        .HasForeignKey("contributionscontribution_id");
+                        .HasForeignKey("contributionscontribution_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("project_comp1640_be.Model.Users", "users")
                         .WithMany("Marketing_Comments")
-                        .HasForeignKey("usersuser_id");
+                        .HasForeignKey("usersuser_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("contributions");
 
@@ -293,8 +290,6 @@ namespace projectcomp1640be.Data.Migrations
 
             modelBuilder.Entity("project_comp1640_be.Model.Faculties", b =>
                 {
-                    b.Navigation("contributions");
-
                     b.Navigation("users");
                 });
 

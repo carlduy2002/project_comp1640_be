@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace projectcomp1640be.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class updatedatabase : Migration
+    public partial class createdatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,7 +17,7 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     academicyearid = table.Column<int>(name: "academic_year_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    academicyeartitle = table.Column<string>(name: "academic_year_title", type: "nvarchar(max)", nullable: false),
+                    academicyeartitle = table.Column<string>(name: "academic_year_title", type: "varchar(max)", nullable: false),
                     academicYearstartClosureDate = table.Column<DateTime>(name: "academic_Year_startClosureDate", type: "datetime2", nullable: false),
                     academicYearendClosureDate = table.Column<DateTime>(name: "academic_Year_endClosureDate", type: "datetime2", nullable: true)
                 },
@@ -32,7 +32,7 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     facultyid = table.Column<int>(name: "faculty_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    facultyname = table.Column<string>(name: "faculty_name", type: "nvarchar(max)", nullable: false)
+                    facultyname = table.Column<string>(name: "faculty_name", type: "varchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -45,7 +45,7 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     roleid = table.Column<int>(name: "role_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    rolename = table.Column<string>(name: "role_name", type: "nvarchar(max)", nullable: false)
+                    rolename = table.Column<string>(name: "role_name", type: "varchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -58,26 +58,26 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     userid = table.Column<int>(name: "user_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    userusername = table.Column<string>(name: "user_username", type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    useremail = table.Column<string>(name: "user_email", type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    userpassword = table.Column<string>(name: "user_password", type: "nvarchar(max)", nullable: false),
-                    userconfirmpassword = table.Column<string>(name: "user_confirm_password", type: "nvarchar(max)", nullable: false),
+                    userusername = table.Column<string>(name: "user_username", type: "varchar(20)", maxLength: 20, nullable: false),
+                    useremail = table.Column<string>(name: "user_email", type: "varchar(50)", maxLength: 50, nullable: false),
+                    userpassword = table.Column<string>(name: "user_password", type: "varchar(max)", nullable: false),
+                    userconfirmpassword = table.Column<string>(name: "user_confirm_password", type: "varchar(max)", nullable: false),
                     token = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    refeshtoken = table.Column<string>(name: "refesh_token", type: "nvarchar(max)", nullable: true),
+                    refeshtoken = table.Column<string>(name: "refesh_token", type: "varchar(max)", nullable: true),
                     refeshtokenexprytime = table.Column<DateTime>(name: "refesh_token_exprytime", type: "datetime2", nullable: false),
-                    resetpasswordtoken = table.Column<string>(name: "reset_password_token", type: "nvarchar(max)", nullable: true),
+                    resetpasswordtoken = table.Column<string>(name: "reset_password_token", type: "varchar(max)", nullable: true),
                     resetpasswordexprytime = table.Column<DateTime>(name: "reset_password_exprytime", type: "datetime2", nullable: false),
-                    accountstatus = table.Column<int>(name: "account_status", type: "int", nullable: false),
-                    useravatar = table.Column<string>(name: "user_avatar", type: "nvarchar(max)", nullable: true),
+                    userstatus = table.Column<int>(name: "user_status", type: "int", nullable: false),
+                    useravatar = table.Column<string>(name: "user_avatar", type: "varchar(max)", nullable: true),
                     roleid = table.Column<int>(name: "role_id", type: "int", nullable: false),
-                    facultiesfacultyid = table.Column<int>(name: "facultiesfaculty_id", type: "int", nullable: false)
+                    facultyid = table.Column<int>(name: "faculty_id", type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.userid);
                     table.ForeignKey(
                         name: "FK_Users_Faculties_facultiesfaculty_id",
-                        column: x => x.facultiesfacultyid,
+                        column: x => x.facultyid,
                         principalTable: "Faculties",
                         principalColumn: "faculty_id",
                         onDelete: ReferentialAction.Cascade);
@@ -95,35 +95,31 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     contributionid = table.Column<int>(name: "contribution_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    contributiontitle = table.Column<string>(name: "contribution_title", type: "nvarchar(max)", nullable: false),
-                    contributioncontent = table.Column<string>(name: "contribution_content", type: "nvarchar(max)", nullable: false),
-                    contributionimage = table.Column<string>(name: "contribution_image", type: "nvarchar(max)", nullable: false),
+                    contributiontitle = table.Column<string>(name: "contribution_title", type: "varchar(max)", nullable: false),
+                    contributioncontent = table.Column<string>(name: "contribution_content", type: "varchar(max)", nullable: false),
+                    contributionimage = table.Column<string>(name: "contribution_image", type: "varchar(max)", nullable: false),
                     contributionsubmitiondate = table.Column<DateTime>(name: "contribution_submition_date", type: "datetime2", nullable: false),
                     IsEnabled = table.Column<int>(type: "int", nullable: false),
                     IsSelected = table.Column<int>(type: "int", nullable: false),
                     IsView = table.Column<int>(type: "int", nullable: false),
-                    usersuserid = table.Column<int>(name: "usersuser_id", type: "int", nullable: true),
-                    facultiesfacultyid = table.Column<int>(name: "facultiesfaculty_id", type: "int", nullable: true),
-                    academicyearsacademicyearid = table.Column<int>(name: "academic_yearsacademic_year_id", type: "int", nullable: true)
+                    userid = table.Column<int>(name: "user_id", type: "int", nullable: false),
+                    academicyearid = table.Column<int>(name: "academic_year_id", type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Contributions", x => x.contributionid);
                     table.ForeignKey(
                         name: "FK_Contributions_Academic_Years_academic_yearsacademic_year_id",
-                        column: x => x.academicyearsacademicyearid,
+                        column: x => x.academicyearid,
                         principalTable: "Academic_Years",
-                        principalColumn: "academic_year_id");
-                    table.ForeignKey(
-                        name: "FK_Contributions_Faculties_facultiesfaculty_id",
-                        column: x => x.facultiesfacultyid,
-                        principalTable: "Faculties",
-                        principalColumn: "faculty_id");
+                        principalColumn: "academic_year_id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Contributions_Users_usersuser_id",
-                        column: x => x.usersuserid,
+                        column: x => x.userid,
                         principalTable: "Users",
-                        principalColumn: "user_id");
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -132,55 +128,50 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     commentid = table.Column<int>(name: "comment_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    comment = table.Column<string>(type: "varchar(max)", nullable: false),
                     commentdate = table.Column<DateTime>(name: "comment_date", type: "datetime2", nullable: false),
-                    usersuserid = table.Column<int>(name: "usersuser_id", type: "int", nullable: true),
-                    contributionscontributionid = table.Column<int>(name: "contributionscontribution_id", type: "int", nullable: true)
+                    userid = table.Column<int>(name: "user_id", type: "int", nullable: false),
+                    contributionid = table.Column<int>(name: "contribution_id", type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Marketing_Comments", x => x.commentid);
                     table.ForeignKey(
-                        name: "FK_Marketing_Comments_Contributions_contributionscontribution_id",
-                        column: x => x.contributionscontributionid,
+                        name: "FK_Marketing_Comments_Contributions_contribution_id",
+                        column: x => x.contributionid,
                         principalTable: "Contributions",
                         principalColumn: "contribution_id");
                     table.ForeignKey(
-                        name: "FK_Marketing_Comments_Users_usersuser_id",
-                        column: x => x.usersuserid,
+                        name: "FK_Marketing_Comments_Users_user_id",
+                        column: x => x.userid,
                         principalTable: "Users",
                         principalColumn: "user_id");
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Contributions_academic_yearsacademic_year_id",
+                name: "IX_Contributions_academic_year_id",
                 table: "Contributions",
-                column: "academic_yearsacademic_year_id");
+                column: "academic_year_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Contributions_facultiesfaculty_id",
+                name: "IX_Contributions_user_id",
                 table: "Contributions",
-                column: "facultiesfaculty_id");
+                column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Contributions_usersuser_id",
-                table: "Contributions",
-                column: "usersuser_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Marketing_Comments_contributionscontribution_id",
+                name: "IX_Marketing_Comments_contribution_id",
                 table: "Marketing_Comments",
-                column: "contributionscontribution_id");
+                column: "contribution_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Marketing_Comments_usersuser_id",
+                name: "IX_Marketing_Comments_user_id",
                 table: "Marketing_Comments",
-                column: "usersuser_id");
+                column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_facultiesfaculty_id",
+                name: "IX_Users_faculty_id",
                 table: "Users",
-                column: "facultiesfaculty_id");
+                column: "faculty_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_role_id",

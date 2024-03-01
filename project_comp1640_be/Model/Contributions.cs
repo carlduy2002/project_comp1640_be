@@ -27,11 +27,11 @@ namespace project_comp1640_be.Model
 
         public IsView IsView { get; set; }
 
-        public virtual Users? users { get; set; }
+        [Required]
+        public virtual Users users { get; set; }
 
-        public virtual Faculties? faculties { get; set; }
-
-        public virtual Academic_Years? academic_years { get; set; }
+        [Required]
+        public virtual Academic_Years academic_years { get; set; }
 
         public ICollection<Marketing_Comments> Marketing_Comments { get; set; }
     }

@@ -15,8 +15,10 @@ namespace project_comp1640_be.Model
         [Required]
         public DateTime comment_date { get; set; }
 
-        public virtual Users? users { get; set; }
+        [Required]  
+        public virtual Users users { get; set; }
 
-        public virtual Contributions? contributions { get; set; }
+        [Required]
+        public virtual Contributions contributions { get; set; }
     }
 }

@@ -33,7 +33,7 @@ namespace project_comp1640_be.Model
         public DateTime reset_password_exprytime { get; set; }
 
         [Required]
-        public user_status account_status { get; set; } = user_status.Unlock;
+        public user_status user_status { get; set; } = user_status.Unlock;
 
         public string? user_avatar { get; set; }
 
