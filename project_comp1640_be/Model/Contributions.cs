@@ -50,6 +50,4 @@ namespace project_comp1640_be.Model
     {
         View, Unview
     }
-
-
 }
