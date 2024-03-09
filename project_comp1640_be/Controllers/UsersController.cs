@@ -96,7 +96,6 @@ namespace project_comp1640_be.Controllers
             return sb.ToString();
         }
 
-
         //Login
         [HttpPost("Login")]
         public async Task<IActionResult> Login(string username, string password)
