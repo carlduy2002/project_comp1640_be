@@ -12,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using project_comp1640_be.Model.Dto;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace project_comp1640_be.Controllers
 {
@@ -154,7 +155,6 @@ namespace project_comp1640_be.Controllers
             return jwtTokenHandler.WriteToken(token);
         }
 
-
         private string CreateRefreshToken()
         {
             var tokenBytes = RandomNumberGenerator.GetBytes(64);
@@ -165,8 +165,25 @@ namespace project_comp1640_be.Controllers
             {
                 return CreateRefreshToken();
             }
-
             return refreshToken;
+        }
+
+        [HttpPost("Update-Profile")]
+        public async Task<IActionResult> UpdateProfile(Users user)
+        {
+            if(user == null)
+            {
+                return BadRequest(new {Message = "Data is null"});
+            }
+
+            _context.Entry(user).State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+            
+            return Ok(new
+            {
+                Message = "Update Profile Succced"
+            });
         }
     }
 }

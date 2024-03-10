@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Messaging;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,15 +21,17 @@ namespace project_comp1640_be.Controllers
 
             var faculty = await _context.Faculties.FindAsync(id);
 
-            if (faculty == null) { 
-                return NotFound();
+            if (faculty == null) {
+                return BadRequest(new { Message = "Faculty is not found" });
             }
 
             _context.Faculties.Remove(faculty);
             await _context.SaveChangesAsync();  
 
-            return NoContent();
+            return Ok(new
+            {
+                Message = "Delete Succeed"
+            });
         }
-
     }
 }
