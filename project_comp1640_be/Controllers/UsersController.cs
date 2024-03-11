@@ -169,7 +169,7 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpPost("Update-Profile")]
-        public async Task<IActionResult> UpdateProfile(Users user)
+        public async Task<IActionResult> UpdateProfile([FromBody] Users user)
         {
             if(user == null)
             {
