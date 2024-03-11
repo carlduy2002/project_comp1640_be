@@ -17,6 +17,12 @@ namespace project_comp1640_be.Controllers
             _context = context;
         }
 
+        [HttpGet("")]
+        public async Task<IActionResult> getAllAcademicYear()
+        {
+            return Ok(await _context.Academic_Years.ToListAsync());
+        }
+
         [HttpGet("get-academic-year")]
         public async Task<IActionResult> getAcademicYear(int academic_year_id)
         {
@@ -24,7 +30,7 @@ namespace project_comp1640_be.Controllers
 
             var academicYear = await _context.Academic_Years.FirstOrDefaultAsync(a => a.academic_year_id == academic_year_id);
 
-            if (academicYear != null) { return BadRequest(new { Message = "Academic Year is already exist" }); }
+            //if (academicYear != null) { return BadRequest(new { Message = "Academic Year is already exist" }); }
 
             return Ok(academicYear);
 
