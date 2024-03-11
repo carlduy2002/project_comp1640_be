@@ -40,7 +40,7 @@ namespace project_comp1640_be.Controllers
 
             uploadFile(file);
 
-            return NoContent();
+            return Ok(new {Mesage = "Add article successed"});
         }
     }
 }
