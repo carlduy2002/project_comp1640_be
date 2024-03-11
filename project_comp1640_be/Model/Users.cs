@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace project_comp1640_be.Model
 {
@@ -28,9 +28,9 @@ namespace project_comp1640_be.Model
         public int user_faculty_id { get; set; }
         public virtual Faculties? faculties { get; set; }
 
-        public ICollection<Contributions> Contributions { get; set; }
+        public ICollection<Contributions>? Contributions { get; set; }
 
-        public ICollection<Marketing_Comments> Marketing_Comments { get; set; }
+        public ICollection<Marketing_Comments>? Marketing_Comments { get; set; }
 
     }
 

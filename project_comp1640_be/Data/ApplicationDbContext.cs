@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using project_comp1640_be.Model;
+using System.Data;
 
 namespace project_comp1640_be.Data
 {
@@ -13,5 +14,27 @@ namespace project_comp1640_be.Data
         public DbSet<Marketing_Comments> Marketing_Comments { get; set; }
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Academic_Years> Academic_Years { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Users>().ToTable("Users");
+            modelBuilder.Entity<Faculties>().ToTable("Faculties");
+            modelBuilder.Entity<Contributions>().ToTable("Contributions");
+            modelBuilder.Entity<Marketing_Comments>().ToTable("Marketing_Comments");
+            modelBuilder.Entity<Roles>().ToTable("Roles");
+            modelBuilder.Entity<Academic_Years>().ToTable("Academic_Years");
+
+            modelBuilder.Entity<Marketing_Comments>()
+                .HasOne(m => m.users)
+                .WithMany(u => u.Marketing_Comments)
+                .HasForeignKey(m => m.comment_user_id)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Marketing_Comments>()
+                .HasOne(m => m.contributions)
+                .WithMany(u => u.Marketing_Comments)
+                .HasForeignKey(m => m.comment_contribution_id)
+                .OnDelete(DeleteBehavior.NoAction);
+        }
     }
 }

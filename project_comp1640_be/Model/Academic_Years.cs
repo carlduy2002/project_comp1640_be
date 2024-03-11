@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace project_comp1640_be.Model
 {
@@ -11,7 +10,7 @@ namespace project_comp1640_be.Model
         public DateTime? academic_Year_startClosureDate { get; set; }
         public DateTime? academic_Year_endClosureDate { get; set; }
 
-        public ICollection<Contributions> contributions { get; set; }
+        public ICollection<Contributions>? contributions { get; set; }
 
     }
 }

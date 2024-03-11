@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace project_comp1640_be.Model
 {
@@ -9,6 +8,6 @@ namespace project_comp1640_be.Model
         public int faculty_id { get; set; }
         public string? faculty_name { get; set; }
 
-        public ICollection<Users> users { get; set; }
+        public ICollection<Users>? users { get; set; }   
     }
 }

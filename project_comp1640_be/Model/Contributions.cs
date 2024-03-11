@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace project_comp1640_be.Model
 {
@@ -20,10 +20,10 @@ namespace project_comp1640_be.Model
         public virtual Users? users { get; set; }
 
         [ForeignKey("academic_years")]
-        public int contribution_academic_years { get; set; }
+        public int contribution_academic_years_id { get; set; }
         public virtual Academic_Years? academic_years { get; set; }
 
-        public ICollection<Marketing_Comments> Marketing_Comments { get; set; }
+        public ICollection<Marketing_Comments>? Marketing_Comments { get; set; }
     }
 
     public enum IsEnabled

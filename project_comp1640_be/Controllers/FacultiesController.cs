@@ -32,7 +32,7 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpPost("update-faculty")]
-        public async Task<IActionResult> updateFaculty(Faculties faculty) 
+        public async Task<IActionResult> updateFaculty([FromBody] Faculties faculty) 
         {
             if (faculty == null) { return BadRequest(new { Message = "Data is provided is null" }); }
 
@@ -40,7 +40,8 @@ namespace project_comp1640_be.Controllers
 
             if (checkFaculty == null) { return BadRequest(new { Message = "Faculty is not found" }); }
 
-            _context.Entry(faculty).State = EntityState.Modified;
+            checkFaculty.faculty_name = faculty.faculty_name;
+            _context.Entry(checkFaculty).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
             return Ok(new {Message = "Update faculty successfull"});
