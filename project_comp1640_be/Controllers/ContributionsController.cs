@@ -40,7 +40,10 @@ namespace project_comp1640_be.Controllers
 
             uploadFile(file);
 
-            return Ok(new {Mesage = "Add article successed"});
+             _context.Contributions.Add(contribution);
+            await _context.SaveChangesAsync();
+
+            return Ok(new {Message = "Add article successed"});
         }
     }
 }
