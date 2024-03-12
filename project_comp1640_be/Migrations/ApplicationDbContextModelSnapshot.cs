@@ -8,7 +8,7 @@ using project_comp1640_be.Data;
 
 #nullable disable
 
-namespace projectcomp1640be.Data.Migrations
+namespace projectcomp1640be.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -33,16 +33,15 @@ namespace projectcomp1640be.Data.Migrations
                     b.Property<DateTime?>("academic_Year_endClosureDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("academic_Year_startClosureDate")
+                    b.Property<DateTime?>("academic_Year_startClosureDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("academic_year_title")
-                        .IsRequired()
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("academic_year_id");
 
-                    b.ToTable("Academic_Years");
+                    b.ToTable("Academic_Years", (string)null);
                 });
 
             modelBuilder.Entity("project_comp1640_be.Model.Contributions", b =>
@@ -53,43 +52,40 @@ namespace projectcomp1640be.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("contribution_id"));
 
-                    b.Property<int>("IsEnabled")
+                    b.Property<int?>("IsEnabled")
                         .HasColumnType("int");
 
-                    b.Property<int>("IsSelected")
+                    b.Property<int?>("IsSelected")
                         .HasColumnType("int");
 
-                    b.Property<int>("IsView")
+                    b.Property<int?>("IsView")
                         .HasColumnType("int");
 
-                    b.Property<int>("academic_year_id")
+                    b.Property<int>("contribution_academic_years_id")
                         .HasColumnType("int");
 
                     b.Property<string>("contribution_content")
-                        .IsRequired()
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("contribution_image")
-                        .IsRequired()
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("contribution_submition_date")
+                    b.Property<DateTime?>("contribution_submition_date")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("contribution_title")
-                        .IsRequired()
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("user_id")
+                    b.Property<int>("contribution_user_id")
                         .HasColumnType("int");
 
                     b.HasKey("contribution_id");
 
-                    b.HasIndex("academic_year_id");
+                    b.HasIndex("contribution_academic_years_id");
 
-                    b.HasIndex("user_id");
+                    b.HasIndex("contribution_user_id");
 
-                    b.ToTable("Contributions");
+                    b.ToTable("Contributions", (string)null);
                 });
 
             modelBuilder.Entity("project_comp1640_be.Model.Faculties", b =>
@@ -101,12 +97,11 @@ namespace projectcomp1640be.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("faculty_id"));
 
                     b.Property<string>("faculty_name")
-                        .IsRequired()
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("faculty_id");
 
-                    b.ToTable("Faculties");
+                    b.ToTable("Faculties", (string)null);
                 });
 
             modelBuilder.Entity("project_comp1640_be.Model.Marketing_Comments", b =>
@@ -118,25 +113,24 @@ namespace projectcomp1640be.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("comment_id"));
 
                     b.Property<string>("comment")
-                        .IsRequired()
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("comment_date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("contribution_id")
+                    b.Property<int>("comment_contribution_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("user_id")
+                    b.Property<DateTime?>("comment_date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("comment_user_id")
                         .HasColumnType("int");
 
                     b.HasKey("comment_id");
 
-                    b.HasIndex("contribution_id");
+                    b.HasIndex("comment_contribution_id");
 
-                    b.HasIndex("user_id");
+                    b.HasIndex("comment_user_id");
 
-                    b.ToTable("Marketing_Comments");
+                    b.ToTable("Marketing_Comments", (string)null);
                 });
 
             modelBuilder.Entity("project_comp1640_be.Model.Roles", b =>
@@ -148,12 +142,11 @@ namespace projectcomp1640be.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("role_id"));
 
                     b.Property<string>("role_name")
-                        .IsRequired()
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("role_id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("project_comp1640_be.Model.Users", b =>
@@ -164,71 +157,65 @@ namespace projectcomp1640be.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("user_id"));
 
-                    b.Property<int>("faculty_id")
-                        .HasColumnType("int");
-
                     b.Property<string>("refesh_token")
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("refesh_token_exprytime")
+                    b.Property<DateTime?>("refesh_token_exprytime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("reset_password_exprytime")
+                    b.Property<DateTime?>("reset_password_exprytime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("reset_password_token")
-                        .HasColumnType("varchar(max)");
-
-                    b.Property<int>("role_id")
-                        .HasColumnType("int");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("token")
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("user_avatar")
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("user_confirm_password")
-                        .IsRequired()
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("user_email")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("user_faculty_id")
+                        .HasColumnType("int");
 
                     b.Property<string>("user_password")
-                        .IsRequired()
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("user_role_id")
+                        .HasColumnType("int");
 
                     b.Property<int>("user_status")
                         .HasColumnType("int");
 
                     b.Property<string>("user_username")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("user_id");
 
-                    b.HasIndex("faculty_id");
+                    b.HasIndex("user_faculty_id");
 
-                    b.HasIndex("role_id");
+                    b.HasIndex("user_role_id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("project_comp1640_be.Model.Contributions", b =>
                 {
                     b.HasOne("project_comp1640_be.Model.Academic_Years", "academic_years")
                         .WithMany("contributions")
-                        .HasForeignKey("academic_year_id")
+                        .HasForeignKey("contribution_academic_years_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("project_comp1640_be.Model.Users", "users")
                         .WithMany("Contributions")
-                        .HasForeignKey("user_id")
+                        .HasForeignKey("contribution_user_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -241,14 +228,14 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     b.HasOne("project_comp1640_be.Model.Contributions", "contributions")
                         .WithMany("Marketing_Comments")
-                        .HasForeignKey("contribution_id")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("comment_contribution_id")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("project_comp1640_be.Model.Users", "users")
                         .WithMany("Marketing_Comments")
-                        .HasForeignKey("user_id")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("comment_user_id")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("contributions");
@@ -260,13 +247,13 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     b.HasOne("project_comp1640_be.Model.Faculties", "faculties")
                         .WithMany("users")
-                        .HasForeignKey("faculty_id")
+                        .HasForeignKey("user_faculty_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("project_comp1640_be.Model.Roles", "role")
                         .WithMany("users")
-                        .HasForeignKey("role_id")
+                        .HasForeignKey("user_role_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
