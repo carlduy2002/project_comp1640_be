@@ -38,7 +38,7 @@ namespace project_comp1640_be.Controllers
             _context.Contributions.Add(contribution);
             await _context.SaveChangesAsync();
 
-            return Ok(new { Message = "Add article successed" });
+            return Ok(new { Message = "Add article successedd" });
         }
 
         [HttpGet("Get-Article")]
