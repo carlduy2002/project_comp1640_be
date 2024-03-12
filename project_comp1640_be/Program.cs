@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using project_comp1640_be.Data;
+using System.ComponentModel;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -61,6 +62,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Guest", policy => policy.RequireRole("Guest"));
 
 });
+
 
 builder.Services.AddSwaggerGen(c =>
 {
