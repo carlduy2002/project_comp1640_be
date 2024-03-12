@@ -155,17 +155,16 @@ namespace project_comp1640_be.Controllers
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes("aaaaaaaaaaaaaaaa");
 
-            var user = _context.Users
-                .Include(u => u.role)
-                .Select(u => new Users
+            var user = _context.Roles
+            .Join(_context.Users.Where(u => u.user_username == acc.user_username),
+                role => role.role_id,
+                user => user.user_role_id,
+                (role, user) => new
                 {
-                    user_username = u.user_username,
-                    user_password = u.user_password,
-                    user_role_id = u.user_role_id,
-                    role_name = u.role.role_name
+                    role_name = role.role_name,
+                    name = user.user_username
                 })
-                .Where(u => u.user_username == acc.user_username)
-                .ToList();
+            .ToList();
 
             string roleName = "";
             string userName = "";
@@ -173,7 +172,7 @@ namespace project_comp1640_be.Controllers
             foreach(var item in user)
             {
                 roleName = item.role_name;
-                userName = item.user_username;
+                userName = item.name;
             }
 
             var identity = new ClaimsIdentity(new Claim[]

@@ -25,9 +25,9 @@ namespace project_comp1640_be.Model
 
         public string? token { get; set; }
         public string? refesh_token { get; set; }
-        public DateTime? refesh_token_exprytime { get; set; }
+        public DateTime refesh_token_exprytime { get; set; }
         public string? reset_password_token { get; set; }
-        public DateTime? reset_password_exprytime { get; set; }
+        public DateTime reset_password_exprytime { get; set; }
         public user_status user_status { get; set; } = user_status.Unlock;
         public string? user_avatar { get; set; }
 

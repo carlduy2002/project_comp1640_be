@@ -12,13 +12,8 @@ using project_comp1640_be.Data;
 namespace projectcomp1640be.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-<<<<<<<< HEAD:project_comp1640_be/Migrations/20240305054904_update-database.Designer.cs
-    [Migration("20240305054904_update-database")]
-    partial class updatedatabase
-========
-    [Migration("20240311050715_V1")]
-    partial class V1
->>>>>>>> 58d28babae6d54cfb0f4dc3c545e2d82bfbed28e:project_comp1640_be/Migrations/20240311050715_V1.Designer.cs
+    [Migration("20240312023730_upload")]
+    partial class upload
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -69,11 +64,7 @@ namespace projectcomp1640be.Migrations
                     b.Property<int?>("IsView")
                         .HasColumnType("int");
 
-<<<<<<<< HEAD:project_comp1640_be/Migrations/20240305054904_update-database.Designer.cs
-                    b.Property<int>("contribution_academic_id")
-========
                     b.Property<int>("contribution_academic_years_id")
->>>>>>>> 58d28babae6d54cfb0f4dc3c545e2d82bfbed28e:project_comp1640_be/Migrations/20240311050715_V1.Designer.cs
                         .HasColumnType("int");
 
                     b.Property<string>("contribution_content")
@@ -93,11 +84,7 @@ namespace projectcomp1640be.Migrations
 
                     b.HasKey("contribution_id");
 
-<<<<<<<< HEAD:project_comp1640_be/Migrations/20240305054904_update-database.Designer.cs
-                    b.HasIndex("contribution_academic_id");
-========
                     b.HasIndex("contribution_academic_years_id");
->>>>>>>> 58d28babae6d54cfb0f4dc3c545e2d82bfbed28e:project_comp1640_be/Migrations/20240311050715_V1.Designer.cs
 
                     b.HasIndex("contribution_user_id");
 
@@ -131,15 +118,6 @@ namespace projectcomp1640be.Migrations
                     b.Property<string>("comment")
                         .HasColumnType("nvarchar(max)");
 
-<<<<<<<< HEAD:project_comp1640_be/Migrations/20240305054904_update-database.Designer.cs
-                    b.Property<DateTime>("comment_date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("comments_contribution_id")
-                        .HasColumnType("int");
-
-                    b.Property<int>("comments_user_id")
-========
                     b.Property<int>("comment_contribution_id")
                         .HasColumnType("int");
 
@@ -147,20 +125,13 @@ namespace projectcomp1640be.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("comment_user_id")
->>>>>>>> 58d28babae6d54cfb0f4dc3c545e2d82bfbed28e:project_comp1640_be/Migrations/20240311050715_V1.Designer.cs
                         .HasColumnType("int");
 
                     b.HasKey("comment_id");
 
-<<<<<<<< HEAD:project_comp1640_be/Migrations/20240305054904_update-database.Designer.cs
-                    b.HasIndex("comments_contribution_id");
-
-                    b.HasIndex("comments_user_id");
-========
                     b.HasIndex("comment_contribution_id");
 
                     b.HasIndex("comment_user_id");
->>>>>>>> 58d28babae6d54cfb0f4dc3c545e2d82bfbed28e:project_comp1640_be/Migrations/20240311050715_V1.Designer.cs
 
                     b.ToTable("Marketing_Comments", (string)null);
                 });
@@ -192,10 +163,10 @@ namespace projectcomp1640be.Migrations
                     b.Property<string>("refesh_token")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("refesh_token_exprytime")
+                    b.Property<DateTime>("refesh_token_exprytime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("reset_password_exprytime")
+                    b.Property<DateTime>("reset_password_exprytime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("reset_password_token")
@@ -208,18 +179,22 @@ namespace projectcomp1640be.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("user_confirm_password")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("user_email")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("user_faculty_id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("user_gender")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("user_faculty_id")
-                        .HasColumnType("int");
-
-                    b.Property<int>("user_faculty_id")
-                        .HasColumnType("int");
-
                     b.Property<string>("user_password")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("user_role_id")
@@ -229,7 +204,9 @@ namespace projectcomp1640be.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("user_username")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("user_id");
 
@@ -244,11 +221,7 @@ namespace projectcomp1640be.Migrations
                 {
                     b.HasOne("project_comp1640_be.Model.Academic_Years", "academic_years")
                         .WithMany("contributions")
-<<<<<<<< HEAD:project_comp1640_be/Migrations/20240305054904_update-database.Designer.cs
-                        .HasForeignKey("contribution_academic_id")
-========
                         .HasForeignKey("contribution_academic_years_id")
->>>>>>>> 58d28babae6d54cfb0f4dc3c545e2d82bfbed28e:project_comp1640_be/Migrations/20240311050715_V1.Designer.cs
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -267,24 +240,14 @@ namespace projectcomp1640be.Migrations
                 {
                     b.HasOne("project_comp1640_be.Model.Contributions", "contributions")
                         .WithMany("Marketing_Comments")
-<<<<<<<< HEAD:project_comp1640_be/Migrations/20240305054904_update-database.Designer.cs
-                        .HasForeignKey("comments_contribution_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-========
                         .HasForeignKey("comment_contribution_id")
                         .OnDelete(DeleteBehavior.NoAction)
->>>>>>>> 58d28babae6d54cfb0f4dc3c545e2d82bfbed28e:project_comp1640_be/Migrations/20240311050715_V1.Designer.cs
                         .IsRequired();
 
                     b.HasOne("project_comp1640_be.Model.Users", "users")
                         .WithMany("Marketing_Comments")
-<<<<<<<< HEAD:project_comp1640_be/Migrations/20240305054904_update-database.Designer.cs
-                        .HasForeignKey("comments_user_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-========
                         .HasForeignKey("comment_user_id")
                         .OnDelete(DeleteBehavior.NoAction)
->>>>>>>> 58d28babae6d54cfb0f4dc3c545e2d82bfbed28e:project_comp1640_be/Migrations/20240311050715_V1.Designer.cs
                         .IsRequired();
 
                     b.Navigation("contributions");
