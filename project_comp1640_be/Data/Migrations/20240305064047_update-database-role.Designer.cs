@@ -12,8 +12,8 @@ using project_comp1640_be.Data;
 namespace projectcomp1640be.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240301032452_create-database")]
-    partial class createdatabase
+    [Migration("20240305064047_update-database-role")]
+    partial class updatedatabaserole
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -65,7 +65,7 @@ namespace projectcomp1640be.Data.Migrations
                     b.Property<int>("IsView")
                         .HasColumnType("int");
 
-                    b.Property<int>("academic_yearsacademic_year_id")
+                    b.Property<int>("contribution_academic_id")
                         .HasColumnType("int");
 
                     b.Property<string>("contribution_content")
@@ -83,14 +83,14 @@ namespace projectcomp1640be.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("usersuser_id")
+                    b.Property<int>("contribution_user_id")
                         .HasColumnType("int");
 
                     b.HasKey("contribution_id");
 
-                    b.HasIndex("academic_yearsacademic_year_id");
+                    b.HasIndex("contribution_academic_id");
 
-                    b.HasIndex("usersuser_id");
+                    b.HasIndex("contribution_user_id");
 
                     b.ToTable("Contributions");
                 });
@@ -127,17 +127,17 @@ namespace projectcomp1640be.Data.Migrations
                     b.Property<DateTime>("comment_date")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("contributionscontribution_id")
+                    b.Property<int>("comments_contribution_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("usersuser_id")
+                    b.Property<int>("comments_user_id")
                         .HasColumnType("int");
 
                     b.HasKey("comment_id");
 
-                    b.HasIndex("contributionscontribution_id");
+                    b.HasIndex("comments_contribution_id");
 
-                    b.HasIndex("usersuser_id");
+                    b.HasIndex("comments_user_id");
 
                     b.ToTable("Marketing_Comments");
                 });
@@ -167,9 +167,6 @@ namespace projectcomp1640be.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("user_id"));
 
-                    b.Property<int>("facultiesfaculty_id")
-                        .HasColumnType("int");
-
                     b.Property<string>("refesh_token")
                         .HasColumnType("nvarchar(max)");
 
@@ -182,8 +179,8 @@ namespace projectcomp1640be.Data.Migrations
                     b.Property<string>("reset_password_token")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("role_id")
-                        .HasColumnType("int");
+                    b.Property<string>("role_name")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("token")
                         .HasColumnType("nvarchar(max)");
@@ -200,9 +197,15 @@ namespace projectcomp1640be.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int>("user_faculty_id")
+                        .HasColumnType("int");
+
                     b.Property<string>("user_password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("user_role_id")
+                        .HasColumnType("int");
 
                     b.Property<int>("user_status")
                         .HasColumnType("int");
@@ -214,9 +217,9 @@ namespace projectcomp1640be.Data.Migrations
 
                     b.HasKey("user_id");
 
-                    b.HasIndex("facultiesfaculty_id");
+                    b.HasIndex("user_faculty_id");
 
-                    b.HasIndex("role_id");
+                    b.HasIndex("user_role_id");
 
                     b.ToTable("Users");
                 });
@@ -225,13 +228,13 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     b.HasOne("project_comp1640_be.Model.Academic_Years", "academic_years")
                         .WithMany("contributions")
-                        .HasForeignKey("academic_yearsacademic_year_id")
+                        .HasForeignKey("contribution_academic_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("project_comp1640_be.Model.Users", "users")
                         .WithMany("Contributions")
-                        .HasForeignKey("usersuser_id")
+                        .HasForeignKey("contribution_user_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -244,13 +247,13 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     b.HasOne("project_comp1640_be.Model.Contributions", "contributions")
                         .WithMany("Marketing_Comments")
-                        .HasForeignKey("contributionscontribution_id")
+                        .HasForeignKey("comments_contribution_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("project_comp1640_be.Model.Users", "users")
                         .WithMany("Marketing_Comments")
-                        .HasForeignKey("usersuser_id")
+                        .HasForeignKey("comments_user_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -263,13 +266,13 @@ namespace projectcomp1640be.Data.Migrations
                 {
                     b.HasOne("project_comp1640_be.Model.Faculties", "faculties")
                         .WithMany("users")
-                        .HasForeignKey("facultiesfaculty_id")
+                        .HasForeignKey("user_faculty_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("project_comp1640_be.Model.Roles", "role")
                         .WithMany("users")
-                        .HasForeignKey("role_id")
+                        .HasForeignKey("user_role_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

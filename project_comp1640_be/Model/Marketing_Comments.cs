@@ -15,10 +15,12 @@ namespace project_comp1640_be.Model
         [Required]
         public DateTime comment_date { get; set; }
 
-        [Required]  
+        public int comments_user_id { get; set; }
+        [ForeignKey("comments_user_id")]
         public virtual Users users { get; set; }
 
-        [Required]
+        public int comments_contribution_id { get; set; }
+        [ForeignKey("comments_contribution_id")]
         public virtual Contributions contributions { get; set; }
     }
 }

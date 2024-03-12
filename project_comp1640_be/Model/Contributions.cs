@@ -27,10 +27,12 @@ namespace project_comp1640_be.Model
 
         public IsView IsView { get; set; }
 
-        [Required]
+        public int contribution_user_id { get; set; }
+        [ForeignKey("contribution_user_id")]
         public virtual Users users { get; set; }
 
-        [Required]
+        public int contribution_academic_id { get; set; }
+        [ForeignKey("contribution_academic_id")]
         public virtual Academic_Years academic_years { get; set; }
 
         public ICollection<Marketing_Comments> Marketing_Comments { get; set; }

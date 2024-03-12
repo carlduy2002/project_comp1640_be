@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using project_comp1640_be.Data;
 
@@ -11,9 +12,11 @@ using project_comp1640_be.Data;
 namespace projectcomp1640be.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240305130813_update-database-with-gender")]
+    partial class updatedatabasewithgender
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -164,6 +167,9 @@ namespace projectcomp1640be.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("user_id"));
 
+                    b.Property<string>("account_gender")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("refesh_token")
                         .HasColumnType("nvarchar(max)");
 
@@ -196,9 +202,6 @@ namespace projectcomp1640be.Data.Migrations
 
                     b.Property<int>("user_faculty_id")
                         .HasColumnType("int");
-
-                    b.Property<string>("user_gender")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("user_password")
                         .IsRequired()

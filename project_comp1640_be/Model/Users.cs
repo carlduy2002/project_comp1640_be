@@ -22,6 +22,8 @@ namespace project_comp1640_be.Model
 
         public string user_confirm_password { get; set; }
 
+        public string? user_gender { get; set; }
+
         public string? token { get; set; }
 
         public string? refesh_token { get; set; }
@@ -37,15 +39,20 @@ namespace project_comp1640_be.Model
 
         public string? user_avatar { get; set; }
 
-        [Required]
-        public virtual Roles role { get; set; }
+        public int user_role_id { get; set; }
 
-        [Required]
-        public virtual Faculties faculties { get; set; }
+        [ForeignKey("user_role_id")]
+        public virtual Roles? role { get; set; }
 
-        public ICollection<Contributions> Contributions { get; set; }
+        public string? role_name { get; set; }
 
-        public ICollection<Marketing_Comments> Marketing_Comments { get; set; }
+        public int user_faculty_id { get; set; }
+        [ForeignKey("user_faculty_id")]
+        public virtual Faculties? faculties { get; set; }
+
+        public ICollection<Contributions>? Contributions { get; set; }
+
+        public ICollection<Marketing_Comments>? Marketing_Comments { get; set; }
 
     }
 

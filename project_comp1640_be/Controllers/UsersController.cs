@@ -12,6 +12,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using project_comp1640_be.Model.Dto;
+using Microsoft.AspNetCore.Authorization;
+using NETCore.MailKit.Core;
+using IEmailService = project_comp1640_be.UtilityService.IEmailService;
 
 namespace project_comp1640_be.Controllers
 {
@@ -20,8 +23,26 @@ namespace project_comp1640_be.Controllers
     public class UsersController : ControllerBase
     {
         readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
+        private readonly IWebHostEnvironment _env;
 
-        public UsersController(ApplicationDbContext context) => _context = context;
+        public UsersController(ApplicationDbContext context, IConfiguration configuration, IEmailService emailService, IWebHostEnvironment env)
+        {
+            _context = context;
+            _configuration = configuration;
+            _emailService = emailService;
+            _env = env;
+        }
+
+        [HttpGet]
+        [Authorize(Policy = "Admin")]
+        public async Task<IActionResult> getAllUsers()
+        {
+            var lstUsers = _context.Users.ToList();
+
+            return Ok(lstUsers);
+        }
 
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] Users user)
@@ -49,7 +70,6 @@ namespace project_comp1640_be.Controllers
             user.user_password = PasswordHasher.HashPassword(user.user_password);
             user.user_confirm_password = PasswordHasher.HashPassword(user.user_confirm_password);
             user.user_status = user_status.Unlock;
-            user.role = user.role;
 
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
@@ -89,8 +109,8 @@ namespace project_comp1640_be.Controllers
                 sb.Append("Minimum password length should be 8" + Environment.NewLine);
             if (!(Regex.IsMatch(password, "[a-z]") && Regex.IsMatch(password, "[A-Z]")
                 && Regex.IsMatch(password, "[0-9]")))
-                sb.Append("Password should be Alphanumeric" + Environment.NewLine);
-            if (!Regex.IsMatch(password, "[<,>,@,!,#,$,$,^,&,*,(,),_,+,\\,//]"))
+                sb.Append("Password should be Alphanumeric and have number" + Environment.NewLine);
+            if (!Regex.IsMatch(password, "[<,>,@,!,#,$,$,^,&,*,(,),_,+]"))
                 sb.Append("Password should contain special chars" + Environment.NewLine);
 
             return sb.ToString();
@@ -134,10 +154,32 @@ namespace project_comp1640_be.Controllers
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes("aaaaaaaaaaaaaaaa");
+
+            var user = _context.Users
+                .Include(u => u.role)
+                .Select(u => new Users
+                {
+                    user_username = u.user_username,
+                    user_password = u.user_password,
+                    user_role_id = u.user_role_id,
+                    role_name = u.role.role_name
+                })
+                .Where(u => u.user_username == acc.user_username)
+                .ToList();
+
+            string roleName = "";
+            string userName = "";
+
+            foreach(var item in user)
+            {
+                roleName = item.role_name;
+                userName = item.user_username;
+            }
+
             var identity = new ClaimsIdentity(new Claim[]
             {
-                new Claim(ClaimTypes.Role, acc.role.ToString()),
-                new Claim(ClaimTypes.Name, $"{acc.user_username}")
+                new Claim(ClaimTypes.Role,roleName),
+                new Claim(ClaimTypes.Name, $"{userName}")
             });
 
             var credential = new SigningCredentials(new SymmetricSecurityKey(key),
@@ -168,6 +210,82 @@ namespace project_comp1640_be.Controllers
             }
 
             return refreshToken;
+        }
+
+        [HttpPost("send-email/{email}")]
+        public async Task<IActionResult> SendEmail(string email)
+        {
+            var user = _context.Users.FirstOrDefault(x => x.user_email == email);
+            if (user is null)
+            {
+                return NotFound(new
+                {
+                    StatusCode = 404,
+                    Message = "email doesn't exist"
+                });
+            }
+
+            var tokenBytes = RandomNumberGenerator.GetBytes(64);
+            var emailToken = Convert.ToBase64String(tokenBytes);
+            user.reset_password_token = emailToken;
+            user.reset_password_exprytime = DateTime.Now.AddMinutes(15);
+
+            string from = _configuration["EmailSettings:From"];
+            var emailModel = new EmailModel(email, "Reset Password!!", EmailBody.EmailStringBody(email, emailToken));
+            _emailService.SendEmail(emailModel);
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                StatusCode = 200,
+                Message = "Email Sent!, Please check your email!"
+            });
+        }
+
+
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDTO resetPasswordDto)
+        {
+            var newToken = resetPasswordDto.EmailToken.Replace(" ", "+");
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.user_email == resetPasswordDto.Email);
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    StatusCode = 404,
+                    Message = "Email doesn't exist"
+                });
+            }
+
+            var tokenCode = user.reset_password_token;
+            DateTime emailTokenExpiry = user.reset_password_exprytime;
+            if (tokenCode != resetPasswordDto.EmailToken || emailTokenExpiry < DateTime.Now)
+            {
+                return BadRequest(new
+                {
+                    StatusCode = 400,
+                    Message = "Invalid Reset Link"
+                });
+            }
+
+            var pwd = CheckPasswordValid(resetPasswordDto.NewPassword);
+            if (!string.IsNullOrEmpty(pwd))
+                return BadRequest(new { Message = pwd.ToString() });
+
+            if (PasswordHasher.VerifyPassword(resetPasswordDto.NewPassword, user.user_password))
+                return BadRequest(new { Message = "This password already exists before, please enter another password!" });
+
+            user.user_password = PasswordHasher.HashPassword(resetPasswordDto.NewPassword);
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                StatusCode = 200,
+                Message = "Reset Password Successfully"
+            });
         }
     }
 }
