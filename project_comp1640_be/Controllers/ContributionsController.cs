@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using project_comp1640_be.Data;
 using project_comp1640_be.Model;
+using System.Data.SqlTypes;
 
 namespace project_comp1640_be.Controllers
 {
@@ -81,7 +82,7 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpGet("Get-Article")]
-        public async Task<IActionResult> GetArticle(int contribution_id)
+        public async Task<IActionResult> GetArticlebById(int contribution_id)
         {
             if (contribution_id == null)
             {
@@ -94,6 +95,13 @@ namespace project_comp1640_be.Controllers
                 return NotFound(new { Message = "Couldn't find" });
             }
             return Ok(contribution);
+        }
+
+        [HttpGet("Get-All-Articles")]
+        public async Task<IActionResult> GetAllArticles()
+        {
+            var contributions = await _context.Contributions.ToListAsync();
+            return Ok(contributions);
         }
 
         [HttpGet("delete-contribution")]

@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using project_comp1640_be.Model.Dto;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Neo4jClient.DataAnnotations.Cypher.Functions;
 
 namespace project_comp1640_be.Controllers
 {
@@ -169,12 +170,47 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpPost("Update-Profile")]
-        public async Task<IActionResult> UpdateProfile([FromBody] Users user)
+        public async Task<IActionResult> UpdateProfile(int id, [FromBody] Users user)
         {
-            if(user == null)
+            //var existingUser = await _context.Users.FindAsync(id);
+            //if (existingUser == null)
+            //{
+            //    return NotFound(new { Message = $"User with id {id} not found" });
+            //}
+
+            if (user == null)
             {
                 return BadRequest(new {Message = "Data is null"});
             }
+
+            if (await CheckEmailExist(user.user_email))
+            {
+                return BadRequest(new { Message = "Email already exist!" });
+            }
+
+            var email = CheckEmailValid(user.user_email);
+            if (!string.IsNullOrEmpty(email))
+            {
+                return BadRequest(new { Message = email.ToString() });
+            }
+
+            var pwd = CheckPasswordValid(user.user_password);
+            if (!string.IsNullOrEmpty(pwd))
+            {
+                return BadRequest(new { Message = pwd.ToString() });
+
+            }
+
+            if (user.user_confirm_password != user.user_password)
+            {
+                return BadRequest(new { Message = "Password and Confirm Password is not match!" });
+
+            }
+
+            user.user_password = PasswordHasher.HashPassword(user.user_password);
+            user.user_confirm_password = PasswordHasher.HashPassword(user.user_confirm_password);
+
+            user.user_id = id;
 
             _context.Entry(user).State = EntityState.Modified;
 
