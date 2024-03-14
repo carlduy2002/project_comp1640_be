@@ -47,6 +47,25 @@ namespace project_comp1640_be.Controllers
             return Ok(new {Message = "Update faculty successfull"});
         }
 
+        [HttpDelete("Delete-faculty")]
+        public async Task<ActionResult> Delete(int id)
+        {
+
+            var faculty = await _context.Faculties.FindAsync(id);
+
+            if (faculty == null)
+            {
+                return BadRequest(new { Message = "Faculty is not found" });
+            }
+
+            _context.Faculties.Remove(faculty);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                Message = "Delete Succeed"
+            });
+        }
 
     }
 }

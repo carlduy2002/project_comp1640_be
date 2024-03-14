@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using project_comp1640_be.Data;
 using project_comp1640_be.Model;
 
@@ -17,11 +18,11 @@ namespace project_comp1640_be.Controllers
             _context = context;
         }
     
-        private void uploadFile(IFormFile file)
+        private void uploadFile(IFormFile file, string folder)
         {
             var filePaths = new List<string>();
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", file.FileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), folder, file.FileName);
             filePaths.Add(filePath);
 
             using (var stream = new FileStream(filePath, FileMode.Create))
@@ -31,14 +32,52 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpPost("Add-New-Article")]
-        public async Task<IActionResult> AddNewArticle([FromForm] Contributions contribution, IFormFile file)
+        public async Task<IActionResult> AddNewArticle(Contributions contribution)
         {
-            uploadFile(file);
+            // Upload thumbnail image
+            var image = Request.Form.Files.FirstOrDefault(f => f.Name == "image");
+            if (image != null)
+            {
+                if (image.Length <= 0)
+                {
+                    return BadRequest(new { Message = "Image file length less than or equal to 0" });
+                }
+
+                string imageFileType = Path.GetExtension(image.FileName).ToLower().Trim();
+                if (imageFileType != ".doc" && imageFileType != ".docx")
+                {
+                    return BadRequest(new { Message = "Image file format not supported. Only .doc and .docx" });
+                }
+
+                uploadFile(image, "Images");
+            }
+
+            //Upload article
+            var article = Request.Form.Files.FirstOrDefault(f => f.Name == "file");
+
+            // var article = Request.Form.Files[0];
+
+            if (article != null)
+            {
+                if (article.Length <= 0)
+                {
+                    return BadRequest(new { Message = "Article file length less than or equal to 0" });
+                }
+
+                string articleFileType = Path.GetExtension(article.FileName).ToLower().Trim();
+                if (articleFileType != ".doc" && articleFileType != ".docx")
+                {
+                    return BadRequest(new { Message = "Article file format not supported. Only .doc and .docx" });
+                }
+
+                uploadFile(article, "Articles");
+                contribution.contribution_content = article.FileName;
+            }
 
             _context.Contributions.Add(contribution);
             await _context.SaveChangesAsync();
 
-            return Ok(new { Message = "Add article successedd" });
+            return Ok(new { Message = "Add article succeeded" });
         }
 
         [HttpGet("Get-Article")]
