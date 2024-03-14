@@ -82,7 +82,7 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpGet("Get-Article")]
-        public async Task<IActionResult> GetArticlebById(int contribution_id)
+        public async Task<IActionResult> GetArticleById(int contribution_id)
         {
             if (contribution_id == null)
             {
@@ -119,6 +119,62 @@ namespace project_comp1640_be.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { Message = "Contribution is deleted" });
+        }
+
+
+        // chưa làm đây là chat gpt code
+        // Code the function to statistical the percentage of contributions by each Faculty for any academic year (Web API)
+        [HttpGet("PercentageByFaculty/{academicYearId}")]
+        public async Task<IActionResult> GetContributionPercentageByFaculty(int academicYearId)
+        {
+            try
+            {
+                // Get contributions for the specified academic year
+                var contributions = await _context.Contributions
+                    .Where(c => c.contribution_academic_years_id == academicYearId)
+                    .ToListAsync();
+
+                // Calculate the total number of contributions
+                int totalContributions = contributions.Count;
+
+                // Group contributions by faculty and count the number of contributions for each faculty
+                var contributionCountsByFaculty = contributions
+                    .GroupBy(c => c.contribution_user_id)
+                    .Select(g => new
+                    {
+                        FacultyId = g.Key,
+                        ContributionCount = g.Count()
+                    })
+                    .ToList();
+
+                // Retrieve the total number of users per faculty
+                var facultyUserCounts = await _context.Users
+                    .Where(u => u.user_faculty_id != null)
+                    .GroupBy(u => u.user_faculty_id)
+                    .Select(g => new
+                    {
+                        FacultyId = g.Key,
+                        UserCount = g.Count()
+                    })
+                    .ToDictionaryAsync(g => g.FacultyId);
+
+                // Calculate the percentage of contributions for each faculty
+                var contributionPercentagesByFaculty = new Dictionary<int, double>();
+                foreach (var facultyCount in contributionCountsByFaculty)
+                {
+                    int facultyId = facultyCount.FacultyId;
+                    int contributionCount = facultyCount.ContributionCount;
+                    int totalUsersInFaculty = facultyUserCounts.ContainsKey(facultyId) ? facultyUserCounts[facultyId].UserCount : 0;
+                    double percentage = totalUsersInFaculty > 0 ? ((double)contributionCount / totalUsersInFaculty) * 100 : 0;
+                    contributionPercentagesByFaculty.Add(facultyId, percentage);
+                }
+
+                return Ok(contributionPercentagesByFaculty);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Internal server error", Error = ex.Message });
+            }
         }
     }
 }
