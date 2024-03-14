@@ -172,11 +172,12 @@ namespace project_comp1640_be.Controllers
         [HttpPost("Update-Profile")]
         public async Task<IActionResult> UpdateProfile(int id, [FromBody] Users user)
         {
-            //var existingUser = await _context.Users.FindAsync(id);
-            //if (existingUser == null)
-            //{
-            //    return NotFound(new { Message = $"User with id {id} not found" });
-            //}
+            var existingUser = await _context.Users.FindAsync(id);
+            if (existingUser == null)
+            {
+                return NotFound(new { Message = $"User with id {id} not found" });
+            }
+            _context.Entry(existingUser).State = EntityState.Detached;
 
             if (user == null)
             {
