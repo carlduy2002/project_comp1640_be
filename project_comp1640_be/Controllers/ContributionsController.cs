@@ -122,6 +122,9 @@ namespace project_comp1640_be.Controllers
         }
 
 
+
+
+
         // chưa làm đây là chat gpt code
         // Code the function to statistical the percentage of contributions by each Faculty for any academic year (Web API)
         [HttpGet("PercentageByFaculty/{academicYearId}")]
