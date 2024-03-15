@@ -56,6 +56,15 @@ namespace project_comp1640_be.Controllers
             return fileType.Equals(".doc", StringComparison.OrdinalIgnoreCase) || fileType.Equals(".docx", StringComparison.OrdinalIgnoreCase);
         }
 
+        // check type img
+        private bool IsImageFile(string fileName)
+        {
+            string fileType = Path.GetExtension(fileName);
+            return fileType.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                   fileType.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                   fileType.Equals(".png", StringComparison.OrdinalIgnoreCase);
+        }
+
         [HttpPost("Add-New-Article")]
         public async Task<IActionResult> AddNewArticle()
         {
@@ -81,7 +90,14 @@ namespace project_comp1640_be.Controllers
 
                 // upload tumbnail img
                 var thumbnailImg = httpRequest.Files["uploadImage"];
-                con.contribution_image = await SaveFileAsync(thumbnailImg, "Imgs");
+                if (IsImageFile(thumbnailImg.FileName))
+                {
+                    con.contribution_image = await SaveFileAsync(thumbnailImg, "Imgs");
+                }
+                else
+                {
+                    return BadRequest(new { Message = "File Format Not Supported. Only .jpg, .jpeg and .png" });
+                }
 
                 // add academic year
                 var date = DateTime.Now;
