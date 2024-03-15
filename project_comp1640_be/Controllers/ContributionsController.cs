@@ -75,28 +75,23 @@ namespace project_comp1640_be.Controllers
                 var httpRequest = Request.Form;
 
                 var title = Request.Form["title"];
+
                 var username = Request.Form["username"];
 
-                // upload article
                 var article = httpRequest.Files["uploadFile"];
-                if(IsWordFile(article.FileName))
-                {
-                    con.contribution_content = await SaveFileAsync(article, "Articles");
-                }
-                else
-                {
-                    return BadRequest(new { Message = "File Format Not Supported. Only .doc and .docx" });
-                }
-
-                // upload tumbnail img
+                
                 var thumbnailImg = httpRequest.Files["uploadImage"];
-                if (IsImageFile(thumbnailImg.FileName))
+
+                if (IsWordFile(article.FileName) && IsImageFile(thumbnailImg.FileName))
                 {
+                    // upload article
+                    con.contribution_content = await SaveFileAsync(article, "Articles");
+                    // upload tumbnail img
                     con.contribution_image = await SaveFileAsync(thumbnailImg, "Imgs");
                 }
                 else
                 {
-                    return BadRequest(new { Message = "File Format Not Supported. Only .jpg, .jpeg and .png" });
+                    return BadRequest(new { Message = "File Format Not Supported" });
                 }
 
                 // add academic year
