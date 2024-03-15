@@ -116,19 +116,20 @@ namespace project_comp1640_be.Controllers
             if (!PasswordHasher.VerifyPassword(password, user.user_password))
                 return BadRequest(new { Message = "Password is incorrectly!" });
 
-            user.token = CreateJwt(user);
-            var newAccessToken = user.token;
-            var newRefreshToken = CreateRefreshToken();
-            user.refesh_token = newRefreshToken;
-            user.refesh_token_exprytime = DateTime.Now.AddDays(1);
-            await _context.SaveChangesAsync();
+            //user.token = CreateJwt(user);
+            //var newAccessToken = user.token;
+            //var newRefreshToken = CreateRefreshToken();
+            //user.refesh_token = newRefreshToken;
+            //user.refesh_token_exprytime = DateTime.Now.AddDays(1);
+            //await _context.SaveChangesAsync();
 
-            return Ok(new TokenApiDto()
-            {
-                AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken,
-                Message = "Login Succeed"
-            });
+            //return Ok(new TokenApiDto()
+            //{
+            //    AccessToken = newAccessToken,
+            //    RefreshToken = newRefreshToken,
+            //    Message = "Login Succeed"
+            //});
+            return Ok();
         }
 
         private string CreateJwt(Users acc)
