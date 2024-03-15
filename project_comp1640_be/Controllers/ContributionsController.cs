@@ -20,10 +20,9 @@ namespace project_comp1640_be.Controllers
         {
             _context = context;
         }
-
-        [HttpPost("uploadFile")]
-        public async Task<IActionResult> uploadFile()
-        {
+        //[HttpPost("uploadFile")]
+        //public async Task<IActionResult> uploadFile()
+        //{
             //var filePaths = new List<string>();
 
             //var filePath = Path.Combine(Directory.GetCurrentDirectory(), folder, file.FileName);
@@ -34,30 +33,30 @@ namespace project_comp1640_be.Controllers
             //    file.CopyTo(stream);
             //}
 
-            try
-            {
-                var httpRequest = Request.Form;
-                var postFile = httpRequest.Files[0];
-                string fileName = postFile.FileName;
-                //var physicalPath = _env.ContentRootPath + "/Articles/" + fileName;
-                var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+        //    try
+        //    {
+        //        var httpRequest = Request.Form;
+        //        var postFile = httpRequest.Files[0];
+        //        string fileName = postFile.FileName;
+        //        //var physicalPath = _env.ContentRootPath + "/Articles/" + fileName;
+        //        var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
 
 
-                using (var stream = new FileStream(physicalPath, FileMode.Create))
-                {
-                    postFile.CopyTo(stream);
-                }
+        //        using (var stream = new FileStream(physicalPath, FileMode.Create))
+        //        {
+        //            postFile.CopyTo(stream);
+        //        }
 
-                return new JsonResult(fileName);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Message = "Upload File Not Succeed" });
-            }
-        }
+        //        return new JsonResult(fileName);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { Message = "Upload File Not Succeed" });
+        //    }
+        //}
 
         [HttpPost("Add-New-Article")]
-        public async Task<IActionResult> AddNewArticle()
+        public async Task<IActionResult> AddNewArticle([FromBody] dynamic data)
         {
 
            
@@ -65,15 +64,33 @@ namespace project_comp1640_be.Controllers
 
             try
             {
-                var httpRequest = Request.Form;
+                //var httpRequest = Request.Form;
 
-                var title = Request.Form["title"];
-                var username = Request.Form["username"];
-                
+                //var title = Request.Form["title"];
+                //var username = Request.Form["username"];
 
-                var postFile = httpRequest.Files[0];
+                var title = data.title;
+                var username = data.fullname;
+
+
+                //
+
+                //var postFile = httpRequest.Files["uploadFile"];
+                var postFile = data.file1;
                 string fileName = postFile.FileName;
                 var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+
+                using (var stream = new FileStream(physicalPath, FileMode.Create))
+                {
+                    postFile.CopyTo(stream);
+                }
+
+                //
+
+                //var postFileImg = httpRequest.Files["uploadImage"];
+                var postFileImg = data.file2;
+                string fileNameImg = postFile.FileName;
+                var physicalPathImg = Path.Combine(Directory.GetCurrentDirectory(), "Imgs", fileName);
 
                 using (var stream = new FileStream(physicalPath, FileMode.Create))
                 {
@@ -90,25 +107,30 @@ namespace project_comp1640_be.Controllers
                 //    file.CopyTo(stream);
                 //}
 
-                var userId = _context.Users.Where(u => u.user_username == username).Select(u=> u.user_id).FirstOrDefault();
                 var date = DateTime.Now;
+                var academicyear = _context.Academic_Years.Where(a => a.academic_Year_startClosureDate >= date).Select(a => a.academic_year_id).FirstOrDefault();
 
-                var academicyear = _context.Academic_Years.Where(a=> a.academic_Year_startClosureDate >= date && a.academic_Year_endClosureDate <= date).Select( a=> a.academic_year_id).FirstOrDefault();
+
+                //var userId = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
 
                 Contributions con = new Contributions();
 
                 con.contribution_title = title;
                 con.contribution_content = fileName;
-                con.contribution_image = "kiet";
-                con.contribution_user_id = userId;
+                con.contribution_image = fileNameImg;
+                //con.contribution_user_id = userId;
                 con.contribution_academic_years_id = academicyear;
                 con.IsEnabled = IsEnabled.Enabled;
-                con.IsSelected = IsSelected.Selected;
+                con.IsSelected = IsSelected.Unselected;
                 con.IsView = IsView.View;
 
                 _context.Contributions.Add(con);
                 await _context.SaveChangesAsync();
 
+                // get user faculty
+                //var userFaculty = _context.Users.Where(u => u.user_faculty_id.Equals(username)).Select(u => u.user_id).FirstOrDefault();
+
+                // file faculty manager and send email
 
                 return Ok(new { Message = "Add article succeeded" });
             }
@@ -178,7 +200,20 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> GetAllArticles()
         {
             var contributions = await _context.Contributions.ToListAsync();
-            return Ok(contributions);
+            return Ok(contributions);   
+        }
+
+
+        [HttpGet("student_id")]
+        public async Task<IActionResult> getContributionStudent(int student_id)
+        {
+            var student = _context.Contributions.Where(c => c.contribution_user_id == student_id).ToList();
+
+            if (student == null)
+                return BadRequest();
+
+            return Ok(student);
+
         }
 
         [HttpGet("delete-contribution")]
@@ -198,33 +233,17 @@ namespace project_comp1640_be.Controllers
             return Ok(new { Message = "Contribution is deleted" });
         }
 
-        // function to download many file
-        [HttpGet("dl")]
-        public FileResult downloadFiles(string fileNames)
+
+        [HttpPut]
+        public async Task<IActionResult> updateContribution(Contributions contributions)
         {
-            var zipFileName = "download.zip";
+            if (contributions == null)
+                return BadRequest(new { Message = "Contribution is null" });
 
-            MemoryStream streamFile = new MemoryStream();
+            _context.Contributions.Entry(contributions).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
 
-            string[] arrFileNames = fileNames.Split(',');
-
-            using (var zipArchive = new ZipArchive(streamFile, ZipArchiveMode.Create, true))
-            {
-                foreach (var fileName in arrFileNames)
-                {
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        var entryName = Path.GetFileName(filePath);
-                        zipArchive.CreateEntryFromFile(filePath, entryName);
-                    }
-                }
-            }
-
-            streamFile.Position = 0;
-
-            return File(streamFile, "application/zip", zipFileName);
+            return Ok(new { Message = "Update Contribution Succeed" });
         }
-
     }
 }

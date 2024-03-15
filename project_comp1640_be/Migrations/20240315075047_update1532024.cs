@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace projectcomp1640be.Migrations
 {
     /// <inheritdoc />
-    public partial class kiet : Migration
+    public partial class update1532024 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -58,15 +58,16 @@ namespace projectcomp1640be.Migrations
                 {
                     userid = table.Column<int>(name: "user_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    userusername = table.Column<string>(name: "user_username", type: "nvarchar(max)", nullable: true),
-                    useremail = table.Column<string>(name: "user_email", type: "nvarchar(max)", nullable: true),
-                    userpassword = table.Column<string>(name: "user_password", type: "nvarchar(max)", nullable: true),
-                    userconfirmpassword = table.Column<string>(name: "user_confirm_password", type: "nvarchar(max)", nullable: true),
+                    userusername = table.Column<string>(name: "user_username", type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    useremail = table.Column<string>(name: "user_email", type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    userpassword = table.Column<string>(name: "user_password", type: "nvarchar(max)", nullable: false),
+                    userconfirmpassword = table.Column<string>(name: "user_confirm_password", type: "nvarchar(max)", nullable: false),
+                    usergender = table.Column<string>(name: "user_gender", type: "nvarchar(max)", nullable: true),
                     token = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     refeshtoken = table.Column<string>(name: "refesh_token", type: "nvarchar(max)", nullable: true),
-                    refeshtokenexprytime = table.Column<DateTime>(name: "refesh_token_exprytime", type: "datetime2", nullable: true),
+                    refeshtokenexprytime = table.Column<DateTime>(name: "refesh_token_exprytime", type: "datetime2", nullable: false),
                     resetpasswordtoken = table.Column<string>(name: "reset_password_token", type: "nvarchar(max)", nullable: true),
-                    resetpasswordexprytime = table.Column<DateTime>(name: "reset_password_exprytime", type: "datetime2", nullable: true),
+                    resetpasswordexprytime = table.Column<DateTime>(name: "reset_password_exprytime", type: "datetime2", nullable: false),
                     userstatus = table.Column<int>(name: "user_status", type: "int", nullable: false),
                     useravatar = table.Column<string>(name: "user_avatar", type: "nvarchar(max)", nullable: true),
                     userroleid = table.Column<int>(name: "user_role_id", type: "int", nullable: false),

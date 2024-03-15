@@ -12,8 +12,8 @@ using project_comp1640_be.Data;
 namespace projectcomp1640be.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240312023903_kiet")]
-    partial class kiet
+    [Migration("20240315075047_update1532024")]
+    partial class update1532024
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -163,10 +163,10 @@ namespace projectcomp1640be.Migrations
                     b.Property<string>("refesh_token")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("refesh_token_exprytime")
+                    b.Property<DateTime>("refesh_token_exprytime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("reset_password_exprytime")
+                    b.Property<DateTime>("reset_password_exprytime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("reset_password_token")
@@ -179,15 +179,22 @@ namespace projectcomp1640be.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("user_confirm_password")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("user_email")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("user_faculty_id")
                         .HasColumnType("int");
 
+                    b.Property<string>("user_gender")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("user_password")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("user_role_id")
@@ -197,7 +204,9 @@ namespace projectcomp1640be.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("user_username")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("user_id");
 

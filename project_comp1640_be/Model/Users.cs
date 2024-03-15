@@ -8,15 +8,26 @@ namespace project_comp1640_be.Model
         [Key]
         public int user_id { get; set; }
 
-        public string? user_username { get; set; }
-        public string? user_email { get; set; }
-        public string? user_password { get; set; }
-        public string? user_confirm_password { get; set; }
+        [Required]
+        [StringLength(20)]
+        public string user_username { get; set; }
+
+        [Required]
+        [StringLength(50)]
+        public string user_email { get; set; }
+
+        [Required]
+        public string user_password { get; set; }
+
+        public string user_confirm_password { get; set; }
+
+        public string? user_gender { get; set; }
+
         public string? token { get; set; }
         public string? refesh_token { get; set; }
-        public DateTime? refesh_token_exprytime { get; set; }
+        public DateTime refesh_token_exprytime { get; set; }
         public string? reset_password_token { get; set; }
-        public DateTime? reset_password_exprytime { get; set; }
+        public DateTime reset_password_exprytime { get; set; }
         public user_status user_status { get; set; } = user_status.Unlock;
         public string? user_avatar { get; set; }
 
