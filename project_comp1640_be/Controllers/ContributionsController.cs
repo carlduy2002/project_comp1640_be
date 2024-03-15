@@ -32,7 +32,14 @@ namespace project_comp1640_be.Controllers
             var fileName = Path.GetFileName(file.FileName);
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), directory, fileName);
 
-
+            // check file exiting
+            int i = 0;
+            while (System.IO.File.Exists(filePath))
+            {
+                i++;
+                fileName = "(" + i + ")" + fileName;
+                filePath = Path.Combine(Directory.GetCurrentDirectory(), directory, fileName);
+            }
 
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
