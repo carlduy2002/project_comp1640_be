@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using project_comp1640_be.Data;
 using project_comp1640_be.Model;
 using System.Data.SqlTypes;
+using System.IO;
 using System.IO.Compression;
 
 namespace project_comp1640_be.Controllers
@@ -20,115 +21,72 @@ namespace project_comp1640_be.Controllers
         {
             _context = context;
         }
-        //[HttpPost("uploadFile")]
-        //public async Task<IActionResult> uploadFile()
-        //{
-            //var filePaths = new List<string>();
 
-            //var filePath = Path.Combine(Directory.GetCurrentDirectory(), folder, file.FileName);
-            //filePaths.Add(filePath);
+        private async Task<string> SaveFileAsync(IFormFile file, string directory)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return null;
+            }
 
-            //using (var stream = new FileStream(filePath, FileMode.Create))
-            //{
-            //    file.CopyTo(stream);
-            //}
-
-        //    try
-        //    {
-        //        var httpRequest = Request.Form;
-        //        var postFile = httpRequest.Files[0];
-        //        string fileName = postFile.FileName;
-        //        //var physicalPath = _env.ContentRootPath + "/Articles/" + fileName;
-        //        var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+            var fileName = Path.GetFileName(file.FileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), directory, fileName);
 
 
-        //        using (var stream = new FileStream(physicalPath, FileMode.Create))
-        //        {
-        //            postFile.CopyTo(stream);
-        //        }
 
-        //        return new JsonResult(fileName);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { Message = "Upload File Not Succeed" });
-        //    }
-        //}
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                    await file.CopyToAsync(stream);
+            }
+
+            return fileName;
+        }
+
+
 
         [HttpPost("Add-New-Article")]
-        public async Task<IActionResult> AddNewArticle([FromBody] dynamic data)
+        public async Task<IActionResult> AddNewArticle()
         {
-
-           
-            //return Ok(new {Message = "Add Contribution Succeed"});
-
             try
             {
-                //var httpRequest = Request.Form;
-
-                //var title = Request.Form["title"];
-                //var username = Request.Form["username"];
-
-                var title = data.title;
-                var username = data.fullname;
-
-
-                //
-
-                //var postFile = httpRequest.Files["uploadFile"];
-                var postFile = data.file1;
-                string fileName = postFile.FileName;
-                var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
-
-                using (var stream = new FileStream(physicalPath, FileMode.Create))
-                {
-                    postFile.CopyTo(stream);
-                }
-
-                //
-
-                //var postFileImg = httpRequest.Files["uploadImage"];
-                var postFileImg = data.file2;
-                string fileNameImg = postFile.FileName;
-                var physicalPathImg = Path.Combine(Directory.GetCurrentDirectory(), "Imgs", fileName);
-
-                using (var stream = new FileStream(physicalPath, FileMode.Create))
-                {
-                    postFile.CopyTo(stream);
-                }
-
-                //var filePaths = new List<string>();
-
-                //var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", file.FileName);
-                //filePaths.Add(filePath);
-
-                //using (var stream = new FileStream(filePath, FileMode.Create))
-                //{
-                //    file.CopyTo(stream);
-                //}
-
-                var date = DateTime.Now;
-                var academicyear = _context.Academic_Years.Where(a => a.academic_Year_startClosureDate >= date).Select(a => a.academic_year_id).FirstOrDefault();
-
-
-                //var userId = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
-
                 Contributions con = new Contributions();
 
-                con.contribution_title = title;
-                con.contribution_content = fileName;
-                con.contribution_image = fileNameImg;
-                //con.contribution_user_id = userId;
+                var httpRequest = Request.Form;
+
+                var title = Request.Form["title"];
+                var username = Request.Form["username"];
+
+                // upload article
+                var article = httpRequest.Files["uploadFile"];
+                string fileType = Path.GetExtension(article.FileName).ToLower().Trim();
+
+                con.contribution_content = await SaveFileAsync(article, "Articles");
+
+                // upload tumbnail img
+                var thumbnailImg = httpRequest.Files["uploadImage"];
+                con.contribution_image = await SaveFileAsync(thumbnailImg, "Imgs");
+
+                // add academic year
+                var date = DateTime.Now;
+                var academicyear = _context.Academic_Years.Where(a => a.academic_Year_startClosureDate >= date).Select(a => a.academic_year_id).FirstOrDefault();
                 con.contribution_academic_years_id = academicyear;
+
+                var userId = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
+                con.contribution_user_id = userId;
+
+                con.contribution_title = title;
+                // con.contribution_content = fileName;
+                // con.contribution_image = fileNameImg;
+                con.contribution_submition_date = date;
                 con.IsEnabled = IsEnabled.Enabled;
                 con.IsSelected = IsSelected.Unselected;
-                con.IsView = IsView.View;
+                con.IsView = IsView.Unview;
 
                 _context.Contributions.Add(con);
                 await _context.SaveChangesAsync();
 
                 // get user faculty
-                //var userFaculty = _context.Users.Where(u => u.user_faculty_id.Equals(username)).Select(u => u.user_id).FirstOrDefault();
+                var userFaculty = _context.Users.Where(u => u.user_faculty_id.Equals(username)).Select(u => u.user_id).FirstOrDefault();
 
                 // file faculty manager and send email
 
@@ -136,48 +94,8 @@ namespace project_comp1640_be.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = "Upload File Not Succeed" });
+                return BadRequest(new { Message = "Upload File Not Succeed - " + " Error: " + ex});
             }
-
-            // Upload thumbnail image
-            //var image = Request.Form.Files.FirstOrDefault(f => f.Name == "image");
-            //if (image != null)
-            //{
-            //    if (image.Length <= 0)
-            //    {
-            //        return BadRequest(new { Message = "Image file length less than or equal to 0" });
-            //    }
-
-            //    string imageFileType = Path.GetExtension(image.FileName).ToLower().Trim();
-            //    if (imageFileType != ".doc" && imageFileType != ".docx")
-            //    {
-            //        return BadRequest(new { Message = "Image file format not supported. Only .doc and .docx" });
-            //    }
-
-            //    uploadFile(image, "Images");
-            //}
-
-            //Upload article
-            //var article = Request.Form.Files.FirstOrDefault(f => f.Name == "file");
-
-            //var article = Request.Form.Files[0];
-
-            //if (article != null)
-            //{
-            //    if (article.Length <= 0)
-            //    {
-            //        return BadRequest(new { Message = "Article file length less than or equal to 0" });
-            //    }
-
-            //    string articleFileType = Path.GetExtension(article.FileName).ToLower().Trim();
-            //    if (articleFileType != ".doc" && articleFileType != ".docx")
-            //    {
-            //        return BadRequest(new { Message = "Article file format not supported. Only .doc and .docx" });
-            //    }
-
-            //    uploadFile(article, "Articles");
-            //    contribution.contribution_content = article.FileName;
-            //}
         }
 
         [HttpGet("Get-Article")]
@@ -202,7 +120,6 @@ namespace project_comp1640_be.Controllers
             var contributions = await _context.Contributions.ToListAsync();
             return Ok(contributions);   
         }
-
 
         [HttpGet("student_id")]
         public async Task<IActionResult> getContributionStudent(int student_id)
@@ -232,7 +149,6 @@ namespace project_comp1640_be.Controllers
 
             return Ok(new { Message = "Contribution is deleted" });
         }
-
 
         [HttpPut]
         public async Task<IActionResult> updateContribution(Contributions contributions)
