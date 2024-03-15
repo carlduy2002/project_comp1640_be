@@ -36,7 +36,7 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "Admin")]
+        //[Authorize(Policy = "Admin")]
         public async Task<IActionResult> getAllUsers()
         {
             var lstUsers = _context.Users.ToList();
@@ -96,7 +96,7 @@ namespace project_comp1640_be.Controllers
         {
             StringBuilder sb = new StringBuilder();
 
-            if (!(Regex.IsMatch(email, "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")))
+            if (!(Regex.IsMatch(email, "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}")))
                 sb.Append("Email is invalid" + Environment.NewLine);
 
             return sb.ToString();
