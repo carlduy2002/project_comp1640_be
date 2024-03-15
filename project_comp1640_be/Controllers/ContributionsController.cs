@@ -76,15 +76,9 @@ namespace project_comp1640_be.Controllers
                    fileType.Equals(".png", StringComparison.OrdinalIgnoreCase);
         }
 
+        // send email function
         private void SendEmail(string email)
         {
-            //var user = _context.Users.FirstOrDefault(x => x.user_email == email);
-            //if (user is null)
-            //{
-            //    Console.WriteLine("Email doesn't exist");
-            //    return;
-            //}
-
             var tokenBytes = RandomNumberGenerator.GetBytes(64);
             var emailToken = Convert.ToBase64String(tokenBytes);
 
@@ -149,9 +143,8 @@ namespace project_comp1640_be.Controllers
 
                 // fine faculty manager and send email
                 var maketingCondinatorUser = _context.Users.Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
-                var mcEmail = maketingCondinatorUser.user_email;
-                SendEmail(mcEmail);
-
+                var maketingCondinatorEmail = maketingCondinatorUser.user_email;
+                SendEmail(maketingCondinatorEmail);
 
                 return Ok(new { Message = "Add article succeeded" });
             }
