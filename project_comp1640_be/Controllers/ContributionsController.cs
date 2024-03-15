@@ -2,11 +2,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.Extensions.Configuration;
+using NETCore.MailKit.Core;
 using project_comp1640_be.Data;
+using project_comp1640_be.Helper;
 using project_comp1640_be.Model;
 using System.Data.SqlTypes;
 using System.IO;
 using System.IO.Compression;
+using System.Security.Cryptography;
+using IEmailService = project_comp1640_be.UtilityService.IEmailService;
+
 
 namespace project_comp1640_be.Controllers
 {
@@ -15,11 +21,16 @@ namespace project_comp1640_be.Controllers
     public class ContributionsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
         private readonly IWebHostEnvironment _env;
 
-        public ContributionsController(ApplicationDbContext context)
+        public ContributionsController(ApplicationDbContext context, IConfiguration configuration, IEmailService emailService, IWebHostEnvironment env)
         {
             _context = context;
+            _configuration = configuration;
+            _emailService = emailService;
+            _env = env;
         }
 
         private async Task<string> SaveFileAsync(IFormFile file, string directory)
@@ -43,7 +54,7 @@ namespace project_comp1640_be.Controllers
 
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                    await file.CopyToAsync(stream);
+                await file.CopyToAsync(stream);
             }
 
             return fileName;
@@ -65,6 +76,25 @@ namespace project_comp1640_be.Controllers
                    fileType.Equals(".png", StringComparison.OrdinalIgnoreCase);
         }
 
+        private void SendEmail(string email)
+        {
+            //var user = _context.Users.FirstOrDefault(x => x.user_email == email);
+            //if (user is null)
+            //{
+            //    Console.WriteLine("Email doesn't exist");
+            //    return;
+            //}
+
+            var tokenBytes = RandomNumberGenerator.GetBytes(64);
+            var emailToken = Convert.ToBase64String(tokenBytes);
+
+            string from = _configuration["EmailSettings:From"];
+            var emailBody = EmailBody.AddNewArticleEmailStringBody();
+            var emailModel = new EmailModel(email, "New ariticle posted!!", emailBody);
+            _emailService.SendEmail(emailModel);
+        }
+
+
         [HttpPost("Add-New-Article")]
         public async Task<IActionResult> AddNewArticle()
         {
@@ -79,7 +109,7 @@ namespace project_comp1640_be.Controllers
                 var username = Request.Form["username"];
 
                 var article = httpRequest.Files["uploadFile"];
-                
+
                 var thumbnailImg = httpRequest.Files["uploadImage"];
 
                 if (IsWordFile(article.FileName) && IsImageFile(thumbnailImg.FileName))
@@ -99,7 +129,8 @@ namespace project_comp1640_be.Controllers
                 var academicyear = _context.Academic_Years.Where(a => a.academic_Year_startClosureDate >= date).Select(a => a.academic_year_id).FirstOrDefault();
                 con.contribution_academic_years_id = academicyear;
 
-                var userId = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
+                var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
+                var userId = user.user_id;
                 con.contribution_user_id = userId;
 
                 con.contribution_title = title;
@@ -116,13 +147,17 @@ namespace project_comp1640_be.Controllers
                 // get user faculty
                 var userFaculty = _context.Users.Where(u => u.user_faculty_id.Equals(username)).Select(u => u.user_id).FirstOrDefault();
 
-                // file faculty manager and send email
+                // fine faculty manager and send email
+                var maketingCondinatorUser = _context.Users.Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
+                var mcEmail = maketingCondinatorUser.user_email;
+                SendEmail(mcEmail);
+
 
                 return Ok(new { Message = "Add article succeeded" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = "Upload File Not Succeed - " + " Error: " + ex});
+                return BadRequest(new { Message = "Upload File Not Succeed - " + " Error: " + ex });
             }
         }
 
@@ -146,7 +181,7 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> GetAllArticles()
         {
             var contributions = await _context.Contributions.ToListAsync();
-            return Ok(contributions);   
+            return Ok(contributions);
         }
 
         [HttpGet("student_id")]
