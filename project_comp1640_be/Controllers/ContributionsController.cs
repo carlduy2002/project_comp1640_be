@@ -49,7 +49,12 @@ namespace project_comp1640_be.Controllers
             return fileName;
         }
 
-
+        // check type word
+        private bool IsWordFile(string fileName)
+        {
+            string fileType = Path.GetExtension(fileName);
+            return fileType.Equals(".doc", StringComparison.OrdinalIgnoreCase) || fileType.Equals(".docx", StringComparison.OrdinalIgnoreCase);
+        }
 
         [HttpPost("Add-New-Article")]
         public async Task<IActionResult> AddNewArticle()
@@ -65,9 +70,14 @@ namespace project_comp1640_be.Controllers
 
                 // upload article
                 var article = httpRequest.Files["uploadFile"];
-                string fileType = Path.GetExtension(article.FileName).ToLower().Trim();
-
-                con.contribution_content = await SaveFileAsync(article, "Articles");
+                if(IsWordFile(article.FileName))
+                {
+                    con.contribution_content = await SaveFileAsync(article, "Articles");
+                }
+                else
+                {
+                    return BadRequest(new { Message = "File Format Not Supported. Only .doc and .docx" });
+                }
 
                 // upload tumbnail img
                 var thumbnailImg = httpRequest.Files["uploadImage"];
