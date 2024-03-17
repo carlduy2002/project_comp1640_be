@@ -139,10 +139,10 @@ namespace project_comp1640_be.Controllers
                 await _context.SaveChangesAsync();
 
                 // get user faculty
-                var userFaculty = _context.Users.Where(u => u.user_faculty_id.Equals(username)).Select(u => u.user_id).FirstOrDefault();
+                var userFaculty = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
 
                 // fine faculty manager and send email
-                var maketingCondinatorUser = _context.Users.Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
+                var maketingCondinatorUser = _context.Users.Where(u => u.faculties.faculty_id == user.faculties.faculty_id && u.role.role_id == 3).FirstOrDefault();
                 var maketingCondinatorEmail = maketingCondinatorUser.user_email;
                 SendEmail(maketingCondinatorEmail);
 
