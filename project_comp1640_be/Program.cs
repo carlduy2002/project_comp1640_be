@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using project_comp1640_be.Data;
@@ -20,6 +21,8 @@ builder.Services.AddCors(c =>
 {
     c.AddPolicy("AllowAngular", options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 });
+
+builder.Services.AddScoped<project_comp1640_be.UtilityService.IEmailService, project_comp1640_be.UtilityService.EmailService > ();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -117,6 +120,21 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
 });
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Articles")),
+    RequestPath = "/Articles"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Imgs")),
+    RequestPath = "/Imgs"
+});
+
 
 app.MapControllers();
 

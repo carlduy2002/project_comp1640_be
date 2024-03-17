@@ -12,7 +12,7 @@ using project_comp1640_be.Data;
 namespace projectcomp1640be.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240317063918_v1")]
+    [Migration("20240317071319_v1")]
     partial class v1
     {
         /// <inheritdoc />
