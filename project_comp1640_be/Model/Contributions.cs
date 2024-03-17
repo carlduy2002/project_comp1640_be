@@ -7,13 +7,33 @@ namespace project_comp1640_be.Model
     {
         [Key]
         public int contribution_id { get; set; }
-        public string? contribution_title { get; set; }
-        public string? contribution_content { get; set; }
-        public string? contribution_image { get; set; }
-        public DateTime? contribution_submition_date { get; set; }
-        public IsEnabled? IsEnabled { get; set; }
-        public IsSelected? IsSelected { get; set; }
-        public IsView? IsView { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(255)")]
+        public string contribution_title { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(255)")]
+        public string contribution_content { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(255)")]
+        public string contribution_image { get; set; }
+
+        [Required]
+        public DateTime contribution_submition_date { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(10)")]
+        public IsEnabled IsEnabled { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(10)")]
+        public IsSelected IsSelected { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(10)")]
+        public IsView IsView { get; set; }
 
         [ForeignKey("users")]
         public int contribution_user_id { get; set; }

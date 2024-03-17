@@ -8,17 +8,41 @@ namespace project_comp1640_be.Model
         [Key]
         public int user_id { get; set; }
 
-        public string? user_username { get; set; }
-        public string? user_email { get; set; }
-        public string? user_password { get; set; }
+        [Required]
+        [Column(TypeName = "varchar(255)")]
+        public string user_username { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(255)")]
+        public string user_email { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(255)")]
+        public string user_password { get; set; }
+
+        [Column(TypeName = "varchar(255)")]
         public string? user_confirm_password { get; set; }
+
+        [Column(TypeName = "varchar(255)")]
         public string? token { get; set; }
+
+        [Column(TypeName = "varchar(255)")]
         public string? refesh_token { get; set; }
+
         public DateTime? refesh_token_exprytime { get; set; }
+
+        [Column(TypeName = "varchar(255)")]
         public string? reset_password_token { get; set; }
+
         public DateTime? reset_password_exprytime { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(10)")]
         public user_status user_status { get; set; } = user_status.Unlock;
-        public string? user_avatar { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(255)")]
+        public string user_avatar { get; set; }
 
         [ForeignKey("role")]
         public int user_role_id { get; set; }
