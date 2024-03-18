@@ -23,7 +23,7 @@ namespace project_comp1640_be.Controllers
                 .Select(c => new
                 {
                     comment_id = c.comment_id,
-                    comment_title = c.comment,
+                    comment_title = c.comment_content,
                     comment_date = c.comment_date,
                     comment_user_id = c.users.user_id,
                     comment_username = c.users.user_username,

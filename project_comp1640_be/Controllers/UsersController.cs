@@ -264,7 +264,7 @@ namespace project_comp1640_be.Controllers
             }
 
             var tokenCode = user.reset_password_token;
-            DateTime emailTokenExpiry = user.reset_password_exprytime;
+            var emailTokenExpiry = user.reset_password_exprytime;
             if (tokenCode != resetPasswordDto.EmailToken || emailTokenExpiry < DateTime.Now)
             {
                 return BadRequest(new

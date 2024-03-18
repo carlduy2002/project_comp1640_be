@@ -8,6 +8,7 @@ using project_comp1640_be.Data;
 using project_comp1640_be.Helper;
 using project_comp1640_be.Model;
 using System.Data.SqlTypes;
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
@@ -157,7 +158,7 @@ namespace project_comp1640_be.Controllers
 
                 // add academic year
                 var date = DateTime.Now;
-                var academicyear = _context.Academic_Years.Where(a => a.academic_Year_startClosureDate >= date).Select(a => a.academic_year_id).FirstOrDefault();
+                var academicyear = _context.Academic_Years.Where(a => a.academic_year_startClosureDate >= date).Select(a => a.academic_year_id).FirstOrDefault();
                 con.contribution_academic_years_id = academicyear;
 
                 var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();

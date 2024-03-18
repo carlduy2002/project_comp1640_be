@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace project_comp1640_be.Model
 {
@@ -6,11 +7,17 @@ namespace project_comp1640_be.Model
     {
         [Key]
         public int academic_year_id { get; set;}
-        public string? academic_year_title { get; set; }
-        public DateTime? academic_Year_startClosureDate { get; set; }
-        public DateTime? academic_Year_endClosureDate { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(255)")]
+        public string academic_year_title { get; set; }
+
+        [Required]
+        public DateTime academic_year_startClosureDate { get; set; }
+
+        [Required]
+        public DateTime academic_year_endClosureDate { get; set; }
 
         public ICollection<Contributions>? contributions { get; set; }
-
     }
 }

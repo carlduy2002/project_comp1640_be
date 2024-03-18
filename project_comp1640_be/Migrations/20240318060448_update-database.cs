@@ -17,9 +17,9 @@ namespace projectcomp1640be.Migrations
                 {
                     academicyearid = table.Column<int>(name: "academic_year_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    academicyeartitle = table.Column<string>(name: "academic_year_title", type: "nvarchar(max)", nullable: true),
-                    academicYearstartClosureDate = table.Column<DateTime>(name: "academic_Year_startClosureDate", type: "datetime2", nullable: true),
-                    academicYearendClosureDate = table.Column<DateTime>(name: "academic_Year_endClosureDate", type: "datetime2", nullable: true)
+                    academicyeartitle = table.Column<string>(name: "academic_year_title", type: "varchar(255)", nullable: false),
+                    academicyearstartClosureDate = table.Column<DateTime>(name: "academic_year_startClosureDate", type: "datetime2", nullable: false),
+                    academicyearendClosureDate = table.Column<DateTime>(name: "academic_year_endClosureDate", type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,7 +32,7 @@ namespace projectcomp1640be.Migrations
                 {
                     facultyid = table.Column<int>(name: "faculty_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    facultyname = table.Column<string>(name: "faculty_name", type: "nvarchar(max)", nullable: true)
+                    facultyname = table.Column<string>(name: "faculty_name", type: "varchar(255)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -45,7 +45,7 @@ namespace projectcomp1640be.Migrations
                 {
                     roleid = table.Column<int>(name: "role_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    rolename = table.Column<string>(name: "role_name", type: "nvarchar(max)", nullable: true)
+                    rolename = table.Column<string>(name: "role_name", type: "varchar(100)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -58,9 +58,9 @@ namespace projectcomp1640be.Migrations
                 {
                     userid = table.Column<int>(name: "user_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    userusername = table.Column<string>(name: "user_username", type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    useremail = table.Column<string>(name: "user_email", type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    userpassword = table.Column<string>(name: "user_password", type: "nvarchar(max)", nullable: false),
+                    userusername = table.Column<string>(name: "user_username", type: "varchar(255)", nullable: false),
+                    useremail = table.Column<string>(name: "user_email", type: "varchar(255)", nullable: false),
+                    userpassword = table.Column<string>(name: "user_password", type: "varchar(255)", nullable: false),
                     userconfirmpassword = table.Column<string>(name: "user_confirm_password", type: "nvarchar(max)", nullable: false),
                     token = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     refeshtoken = table.Column<string>(name: "refesh_token", type: "nvarchar(max)", nullable: true),
@@ -95,13 +95,13 @@ namespace projectcomp1640be.Migrations
                 {
                     contributionid = table.Column<int>(name: "contribution_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    contributiontitle = table.Column<string>(name: "contribution_title", type: "nvarchar(max)", nullable: true),
-                    contributioncontent = table.Column<string>(name: "contribution_content", type: "nvarchar(max)", nullable: true),
-                    contributionimage = table.Column<string>(name: "contribution_image", type: "nvarchar(max)", nullable: true),
-                    contributionsubmitiondate = table.Column<DateTime>(name: "contribution_submition_date", type: "datetime2", nullable: true),
-                    IsEnabled = table.Column<int>(type: "int", nullable: true),
-                    IsSelected = table.Column<int>(type: "int", nullable: true),
-                    IsView = table.Column<int>(type: "int", nullable: true),
+                    contributiontitle = table.Column<string>(name: "contribution_title", type: "varchar(255)", nullable: false),
+                    contributioncontent = table.Column<string>(name: "contribution_content", type: "varchar(255)", nullable: false),
+                    contributionimage = table.Column<string>(name: "contribution_image", type: "varchar(255)", nullable: false),
+                    contributionsubmitiondate = table.Column<DateTime>(name: "contribution_submition_date", type: "datetime2", nullable: false),
+                    IsEnabled = table.Column<string>(type: "varchar(10)", nullable: false),
+                    IsSelected = table.Column<string>(type: "varchar(10)", nullable: false),
+                    IsView = table.Column<string>(type: "varchar(10)", nullable: false),
                     contributionuserid = table.Column<int>(name: "contribution_user_id", type: "int", nullable: false),
                     contributionacademicyearsid = table.Column<int>(name: "contribution_academic_years_id", type: "int", nullable: false)
                 },
@@ -128,8 +128,8 @@ namespace projectcomp1640be.Migrations
                 {
                     commentid = table.Column<int>(name: "comment_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    comment = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    commentdate = table.Column<DateTime>(name: "comment_date", type: "datetime2", nullable: true),
+                    commentcontent = table.Column<string>(name: "comment_content", type: "varchar(2000)", nullable: false),
+                    commentdate = table.Column<DateTime>(name: "comment_date", type: "datetime2", nullable: false),
                     commentuserid = table.Column<int>(name: "comment_user_id", type: "int", nullable: false),
                     commentcontributionid = table.Column<int>(name: "comment_contribution_id", type: "int", nullable: false)
                 },

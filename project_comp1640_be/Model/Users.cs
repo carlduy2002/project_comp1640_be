@@ -10,32 +10,40 @@ namespace project_comp1640_be.Model
         public int user_id { get; set; }
 
         [Required]
-        [StringLength(20)]
+        [Column(TypeName = "varchar(255)")]
         public string user_username { get; set; }
 
         [Required]
-        [StringLength(50)]
+        [Column(TypeName = "varchar(255)")]
         public string user_email { get; set; }
 
         [Required]
+        [Column(TypeName = "varchar(255)")]
         public string user_password { get; set; }
 
-        public string user_confirm_password { get; set; }
+        [Column(TypeName = "varchar(255)")]
+        public string? user_confirm_password { get; set; }
 
+        [Column(TypeName = "varchar(255)")]
         public string? token { get; set; }
 
+        [Column(TypeName = "varchar(255)")]
         public string? refesh_token { get; set; }
 
-        public DateTime refesh_token_exprytime { get; set; }
+        public DateTime? refesh_token_exprytime { get; set; }
 
+        [Column(TypeName = "varchar(255)")]
         public string? reset_password_token { get; set; }
 
-        public DateTime reset_password_exprytime { get; set; }
+        public DateTime? reset_password_exprytime { get; set; }
 
         [Required]
+        [Column(TypeName = "varchar(10)")]
         public user_status user_status { get; set; } = user_status.Unlock;
 
-        public string? user_avatar { get; set; }
+        [Required]
+        [Column(TypeName = "varchar(255)")]
+        public string user_avatar { get; set; }
 
         [Required]
         public virtual Roles? role { get; set; }

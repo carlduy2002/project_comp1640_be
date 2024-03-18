@@ -41,7 +41,7 @@ namespace project_comp1640_be.Controllers
         {
             if(academic_Years == null) { return BadRequest(new {Message = "Data is provided is null"}); }
 
-            if(academic_Years.academic_Year_startClosureDate >= academic_Years.academic_Year_endClosureDate )
+            if(academic_Years.academic_year_startClosureDate >= academic_Years.academic_year_endClosureDate )
             {
                 return BadRequest(new { Message = "Start Closure Date cannot equal or grater than End Closure Date" });
             }
@@ -67,14 +67,14 @@ namespace project_comp1640_be.Controllers
                 return BadRequest(new { Message = "Academic Year is not found" });
             }
 
-            if(academicYears.academic_Year_startClosureDate >= academicYears.academic_Year_endClosureDate)
+            if(academicYears.academic_year_startClosureDate >= academicYears.academic_year_endClosureDate)
             {
                 return BadRequest(new { Message = "Start Closure Date cannot equal or grater than End Closure Date" });
             }
 
             checkAcademicYear.academic_year_title = academicYears.academic_year_title;
-            checkAcademicYear.academic_Year_startClosureDate = academicYears.academic_Year_startClosureDate;
-            checkAcademicYear.academic_Year_endClosureDate = academicYears.academic_Year_endClosureDate;
+            checkAcademicYear.academic_year_startClosureDate = academicYears.academic_year_startClosureDate;
+            checkAcademicYear.academic_year_endClosureDate = academicYears.academic_year_endClosureDate;
 
             _context.Entry(checkAcademicYear).State = EntityState.Modified;
             await _context.SaveChangesAsync();
