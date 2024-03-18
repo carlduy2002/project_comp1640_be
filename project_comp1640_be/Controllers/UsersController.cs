@@ -12,6 +12,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using project_comp1640_be.Model.Dto;
+//<<<<<<< HEAD
+//using static System.Runtime.InteropServices.JavaScript.JSType;
+//using Neo4jClient.DataAnnotations.Cypher.Functions;
+//=======
 using Microsoft.AspNetCore.Authorization;
 using NETCore.MailKit.Core;
 using IEmailService = project_comp1640_be.UtilityService.IEmailService;
@@ -148,6 +152,7 @@ namespace project_comp1640_be.Controllers
                 RefreshToken = newRefreshToken,
                 Message = "Login Succeed"
             });
+            //return Ok();
         }
 
         private string CreateJwt(Users acc)
@@ -158,7 +163,7 @@ namespace project_comp1640_be.Controllers
             var user = _context.Roles
             .Join(_context.Users.Where(u => u.user_username == acc.user_username),
                 role => role.role_id,
-                user => user.user_role_id,
+                user => user.role.role_id,
                 (role, user) => new
                 {
                     role_name = role.role_name,

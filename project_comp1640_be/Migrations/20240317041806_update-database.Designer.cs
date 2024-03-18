@@ -12,8 +12,8 @@ using project_comp1640_be.Data;
 namespace projectcomp1640be.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240312023730_upload")]
-    partial class upload
+    [Migration("20240317041806_update-database")]
+    partial class updatedatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -160,6 +160,9 @@ namespace projectcomp1640be.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("user_id"));
 
+                    b.Property<int>("facultiesfaculty_id")
+                        .HasColumnType("int");
+
                     b.Property<string>("refesh_token")
                         .HasColumnType("nvarchar(max)");
 
@@ -171,6 +174,9 @@ namespace projectcomp1640be.Migrations
 
                     b.Property<string>("reset_password_token")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("role_id")
+                        .HasColumnType("int");
 
                     b.Property<string>("token")
                         .HasColumnType("nvarchar(max)");
@@ -187,18 +193,9 @@ namespace projectcomp1640be.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("user_faculty_id")
-                        .HasColumnType("int");
-
-                    b.Property<string>("user_gender")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("user_password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("user_role_id")
-                        .HasColumnType("int");
 
                     b.Property<int>("user_status")
                         .HasColumnType("int");
@@ -210,9 +207,9 @@ namespace projectcomp1640be.Migrations
 
                     b.HasKey("user_id");
 
-                    b.HasIndex("user_faculty_id");
+                    b.HasIndex("facultiesfaculty_id");
 
-                    b.HasIndex("user_role_id");
+                    b.HasIndex("role_id");
 
                     b.ToTable("Users", (string)null);
                 });
@@ -259,13 +256,13 @@ namespace projectcomp1640be.Migrations
                 {
                     b.HasOne("project_comp1640_be.Model.Faculties", "faculties")
                         .WithMany("users")
-                        .HasForeignKey("user_faculty_id")
+                        .HasForeignKey("facultiesfaculty_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("project_comp1640_be.Model.Roles", "role")
                         .WithMany("users")
-                        .HasForeignKey("user_role_id")
+                        .HasForeignKey("role_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

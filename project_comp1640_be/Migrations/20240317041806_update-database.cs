@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace projectcomp1640be.Migrations
 {
     /// <inheritdoc />
-    public partial class upload : Migration
+    public partial class updatedatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -62,7 +62,6 @@ namespace projectcomp1640be.Migrations
                     useremail = table.Column<string>(name: "user_email", type: "nvarchar(50)", maxLength: 50, nullable: false),
                     userpassword = table.Column<string>(name: "user_password", type: "nvarchar(max)", nullable: false),
                     userconfirmpassword = table.Column<string>(name: "user_confirm_password", type: "nvarchar(max)", nullable: false),
-                    usergender = table.Column<string>(name: "user_gender", type: "nvarchar(max)", nullable: true),
                     token = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     refeshtoken = table.Column<string>(name: "refesh_token", type: "nvarchar(max)", nullable: true),
                     refeshtokenexprytime = table.Column<DateTime>(name: "refesh_token_exprytime", type: "datetime2", nullable: false),
@@ -70,21 +69,21 @@ namespace projectcomp1640be.Migrations
                     resetpasswordexprytime = table.Column<DateTime>(name: "reset_password_exprytime", type: "datetime2", nullable: false),
                     userstatus = table.Column<int>(name: "user_status", type: "int", nullable: false),
                     useravatar = table.Column<string>(name: "user_avatar", type: "nvarchar(max)", nullable: true),
-                    userroleid = table.Column<int>(name: "user_role_id", type: "int", nullable: false),
-                    userfacultyid = table.Column<int>(name: "user_faculty_id", type: "int", nullable: false)
+                    roleid = table.Column<int>(name: "role_id", type: "int", nullable: false),
+                    facultiesfacultyid = table.Column<int>(name: "facultiesfaculty_id", type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.userid);
                     table.ForeignKey(
-                        name: "FK_Users_Faculties_user_faculty_id",
-                        column: x => x.userfacultyid,
+                        name: "FK_Users_Faculties_facultiesfaculty_id",
+                        column: x => x.facultiesfacultyid,
                         principalTable: "Faculties",
                         principalColumn: "faculty_id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Users_Roles_user_role_id",
-                        column: x => x.userroleid,
+                        name: "FK_Users_Roles_role_id",
+                        column: x => x.roleid,
                         principalTable: "Roles",
                         principalColumn: "role_id",
                         onDelete: ReferentialAction.Cascade);
@@ -170,14 +169,14 @@ namespace projectcomp1640be.Migrations
                 column: "comment_user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_user_faculty_id",
+                name: "IX_Users_facultiesfaculty_id",
                 table: "Users",
-                column: "user_faculty_id");
+                column: "facultiesfaculty_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_user_role_id",
+                name: "IX_Users_role_id",
                 table: "Users",
-                column: "user_role_id");
+                column: "role_id");
         }
 
         /// <inheritdoc />

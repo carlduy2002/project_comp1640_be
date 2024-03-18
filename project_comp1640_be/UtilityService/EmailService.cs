@@ -16,7 +16,7 @@ namespace project_comp1640_be.UtilityService
         {
             var emailMessage = new MimeMessage();
             var from = _config["EmailSettings:From"];
-            emailMessage.From.Add(new MailboxAddress("HD - STORE", from));
+            emailMessage.From.Add(new MailboxAddress("Article Contribution System", from));
             emailMessage.To.Add(new MailboxAddress(emailModel.To, emailModel.To));
             emailModel.Subject = emailMessage.Subject;
             emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
