@@ -41,14 +41,15 @@ namespace project_comp1640_be.Model
         [Column(TypeName = "varchar(10)")]
         public user_status user_status { get; set; } = user_status.Unlock;
 
-        [Required]
         [Column(TypeName = "varchar(255)")]
-        public string user_avatar { get; set; }
+        public string? user_avatar { get; set; }
 
-        [Required]
+        [ForeignKey("role")]
+        public int user_role_id { get; set; }
         public virtual Roles? role { get; set; }
 
-        [Required]
+        [ForeignKey("faculties")]
+        public int user_faculty_id { get; set; }
         public virtual Faculties? faculties { get; set; }
 
         public ICollection<Contributions>? Contributions { get; set; }
