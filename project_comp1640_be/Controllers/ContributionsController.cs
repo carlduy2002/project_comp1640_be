@@ -88,7 +88,6 @@ namespace project_comp1640_be.Controllers
             _emailService.SendEmail(emailModel);
         }
 
-
         [HttpPost("Add-New-Article")]
         public async Task<IActionResult> AddNewArticle()
         {
@@ -128,8 +127,6 @@ namespace project_comp1640_be.Controllers
                 con.contribution_user_id = userId;
 
                 con.contribution_title = title;
-                // con.contribution_content = fileName;
-                // con.contribution_image = fileNameImg;
                 con.contribution_submition_date = date;
                 con.IsEnabled = IsEnabled.Enabled;
                 con.IsSelected = IsSelected.Unselected;
