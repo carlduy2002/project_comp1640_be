@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Aspose.Words.Saving;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
@@ -12,7 +13,10 @@ using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using System.Text;
 using IEmailService = project_comp1640_be.UtilityService.IEmailService;
+using Aspose.Words;
 
 
 namespace project_comp1640_be.Controllers
@@ -87,6 +91,35 @@ namespace project_comp1640_be.Controllers
             var emailBody = EmailBody.AddNewArticleEmailStringBody();
             var emailModel = new EmailModel(email, "New ariticle posted!!", emailBody);
             _emailService.SendEmail(emailModel);
+        }
+
+        //load file word to html
+        public async Task<String> LoadWordFile(string fileName)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                Document doc = new Document(filePath);
+
+                // doc.RemoveMacros();
+
+                MemoryStream stream = new MemoryStream();
+
+                HtmlSaveOptions options = new HtmlSaveOptions();
+                options.ExportImagesAsBase64 = true;
+
+                doc.Save(stream, options);
+
+                stream.Position = 0;
+
+                string htmlContent = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
+
+                htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
+
+                return htmlContent;
+            }
+            return "File not found";
         }
 
         [HttpPost("Add-New-Article")]
