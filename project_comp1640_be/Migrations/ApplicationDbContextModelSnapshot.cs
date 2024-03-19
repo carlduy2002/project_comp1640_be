@@ -30,14 +30,15 @@ namespace projectcomp1640be.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("academic_year_id"));
 
-                    b.Property<DateTime?>("academic_Year_endClosureDate")
+                    b.Property<DateTime>("academic_year_endClosureDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("academic_Year_startClosureDate")
+                    b.Property<DateTime>("academic_year_startClosureDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("academic_year_title")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("academic_year_id");
 
@@ -52,29 +53,35 @@ namespace projectcomp1640be.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("contribution_id"));
 
-                    b.Property<int?>("IsEnabled")
-                        .HasColumnType("int");
+                    b.Property<string>("IsEnabled")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
 
-                    b.Property<int?>("IsSelected")
-                        .HasColumnType("int");
+                    b.Property<string>("IsSelected")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
 
-                    b.Property<int?>("IsView")
-                        .HasColumnType("int");
+                    b.Property<string>("IsView")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
 
                     b.Property<int>("contribution_academic_years_id")
                         .HasColumnType("int");
 
                     b.Property<string>("contribution_content")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("contribution_image")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
-                    b.Property<DateTime?>("contribution_submition_date")
+                    b.Property<DateTime>("contribution_submition_date")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("contribution_title")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("contribution_user_id")
                         .HasColumnType("int");
@@ -97,7 +104,8 @@ namespace projectcomp1640be.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("faculty_id"));
 
                     b.Property<string>("faculty_name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("faculty_id");
 
@@ -112,13 +120,14 @@ namespace projectcomp1640be.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("comment_id"));
 
-                    b.Property<string>("comment")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("comment_content")
+                        .IsRequired()
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<int>("comment_contribution_id")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("comment_date")
+                    b.Property<DateTime>("comment_date")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("comment_user_id")
@@ -142,7 +151,8 @@ namespace projectcomp1640be.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("role_id"));
 
                     b.Property<string>("role_name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("role_id");
 
@@ -158,52 +168,48 @@ namespace projectcomp1640be.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("user_id"));
 
                     b.Property<string>("refesh_token")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varchar(255)");
 
-                    b.Property<DateTime>("refesh_token_exprytime")
+                    b.Property<DateTime?>("refesh_token_exprytime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("reset_password_exprytime")
+                    b.Property<DateTime?>("reset_password_exprytime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("reset_password_token")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("token")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("user_avatar")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("user_confirm_password")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("user_email")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("user_faculty_id")
                         .HasColumnType("int");
 
-                    b.Property<string>("user_gender")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("user_password")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("user_role_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("user_status")
-                        .HasColumnType("int");
+                    b.Property<string>("user_status")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
 
                     b.Property<string>("user_username")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("user_id");
 

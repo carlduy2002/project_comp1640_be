@@ -36,5 +36,20 @@ namespace project_comp1640_be.Controllers
 
             return Ok(new { Message = "Update comment successed" });
         }
+
+        [HttpDelete("delete-comment")]
+        public async Task<IActionResult> deleteComment(int comment_id)
+        {
+            if (comment_id == 0 || comment_id == null) { BadRequest(new {Message = "Comment ID is null"}); }
+
+            var comment = await _context.Marketing_Comments.FirstOrDefaultAsync(c => c.comment_id ==  comment_id);
+
+            if (comment == null) { BadRequest(new { Message = "Comment is not found" }); }
+
+            _context.Marketing_Comments.Remove(comment);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Delete Comment successfully" });
+        }
     }
 }

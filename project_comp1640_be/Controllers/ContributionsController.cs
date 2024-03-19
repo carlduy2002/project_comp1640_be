@@ -8,6 +8,7 @@ using project_comp1640_be.Data;
 using project_comp1640_be.Helper;
 using project_comp1640_be.Model;
 using System.Data.SqlTypes;
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
@@ -119,7 +120,7 @@ namespace project_comp1640_be.Controllers
 
                 // add academic year
                 var date = DateTime.Now;
-                var academicyear = _context.Academic_Years.Where(a => a.academic_Year_startClosureDate >= date).Select(a => a.academic_year_id).FirstOrDefault();
+                var academicyear = _context.Academic_Years.Where(a => a.academic_year_startClosureDate >= date).Select(a => a.academic_year_id).FirstOrDefault();
                 con.contribution_academic_years_id = academicyear;
 
                 var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
@@ -214,5 +215,53 @@ namespace project_comp1640_be.Controllers
 
             return Ok(new { Message = "Update Contribution Succeed" });
         }
+
+        [HttpPut("update-thumbnail")]
+        public async Task<IActionResult> updateThumbnail(int contribution_id)
+        {
+            if (contribution_id == 0 || contribution_id == null) return BadRequest(new { Message = "Contribution ID is null" });
+
+            var file = Request.Form.Files["uploadImage"];
+
+            if (file == null) return BadRequest(new { Message = "image file is null" });
+
+            var contribution = _context.Contributions.FirstOrDefault(c => c.contribution_id == contribution_id);
+
+            if (contribution == null) return BadRequest(new { Message = "Contribution is not found" });
+
+            contribution.contribution_image = await SaveFileAsync(file, "Imgs");
+
+            _context.Entry(contribution).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Update image thumbnail successfully" });
+        }
+
+        [HttpPut("public-contribution")]
+        public async Task<IActionResult> publicContribution(int contribution_id)
+        {
+            if (contribution_id == null) { return BadRequest(new { Message = "Data is provided is null" }); }
+
+            var contribution = await _context.Contributions.FirstOrDefaultAsync(c => c.contribution_id == contribution_id);
+
+            if (contribution == null) { return BadRequest(new { Message = "Contribution is not found" }); }
+
+            contribution.IsSelected = IsSelected.Selected;
+
+            _context.Entry(contribution).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Contribution is deleted" });
+        }
+
+        [HttpGet("get-all-public-contribution")]
+        public async Task<IActionResult> getAllPublicContribution()
+        {
+            var lstPublicContribution = _context.Contributions.Where(c => c.IsSelected == IsSelected.Selected).ToList();
+
+            return Ok(lstPublicContribution);
+        }
+
+
     }
 }
