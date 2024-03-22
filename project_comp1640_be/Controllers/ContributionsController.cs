@@ -17,8 +17,6 @@ using System.Text.RegularExpressions;
 using System.Text;
 using IEmailService = project_comp1640_be.UtilityService.IEmailService;
 using Aspose.Words;
-using Microsoft.AspNetCore.Html;
-
 
 namespace project_comp1640_be.Controllers
 {
@@ -37,6 +35,41 @@ namespace project_comp1640_be.Controllers
             _configuration = configuration;
             _emailService = emailService;
             _env = env;
+        }
+
+        //get all article of student
+        [HttpGet("username")]
+        public async Task<IActionResult> getArticleOfStudent(string username)
+        {
+            if (username == null)
+                return BadRequest(new { Message = "Username is null" });
+
+            var userId = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
+
+            if (userId == null)
+                return NotFound(new { Message = "User is not found" });
+
+            var lstArticle = _context.Contributions.Where(c => c.contribution_user_id.Equals(userId)).ToList();
+
+            return Ok(lstArticle);
+
+        }
+
+        //get article by id
+        [HttpGet("contribution_id")]
+        public async Task<IActionResult> getArticleById(int contribution_id)
+        {
+            if (contribution_id == 0)
+                return BadRequest();
+
+            var article = _context.Contributions
+                .Where(c => c.contribution_id.Equals(contribution_id))
+                .ToList();
+
+            if (article == null)
+                return NotFound(new { Message = "Article is not found" });
+
+            return Ok(article);
         }
 
         private async Task<string> SaveFileAsync(IFormFile file, string directory)
@@ -91,48 +124,17 @@ namespace project_comp1640_be.Controllers
             }
         }
         // send email function
-        private void SendEmail(string email)
+        private void SendEmail(string email, int contributionId)
         {
             var tokenBytes = RandomNumberGenerator.GetBytes(64);
             var emailToken = Convert.ToBase64String(tokenBytes);
 
             string from = _configuration["EmailSettings:From"];
-            var emailBody = EmailBody.AddNewArticleEmailStringBody();
+            var emailBody = EmailBody.AddNewArticleEmailStringBody(contributionId);
             var emailModel = new EmailModel(email, "New ariticle posted!!", emailBody);
             _emailService.SendEmail(emailModel);
         }
 
-        //load file word to html
-        [HttpGet("Load-file")]
-        public async Task<IActionResult> LoadWordFile(string fileName)
-        {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
-
-            if (System.IO.File.Exists(filePath))
-            {
-                Document doc = new Document(filePath);
-
-                // doc.RemoveMacros();
-
-                MemoryStream stream = new MemoryStream();
-
-                HtmlSaveOptions options = new HtmlSaveOptions();
-                options.ExportImagesAsBase64 = true;
-
-                doc.Save(stream, options);
-
-                stream.Position = 0;
-
-                StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-                string htmlContent = reader.ReadToEnd();
-
-                htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
-
-                return Content(htmlContent, "text/html");
-            }
-
-            return NotFound("File not found");
-        }
 
         [HttpPost("Add-New-Article")]
         public async Task<IActionResult> AddNewArticle()
@@ -165,7 +167,7 @@ namespace project_comp1640_be.Controllers
 
                 // add academic year
                 var date = DateTime.Now;
-                var academicyear = _context.Academic_Years.Where(a => a.academic_year_startClosureDate >= date).Select(a => a.academic_year_id).FirstOrDefault();
+                var academicyear = _context.Academic_Years.Where(a => a.academic_year_startClosureDate <= date).Select(a => a.academic_year_id).FirstOrDefault();
                 con.contribution_academic_years_id = academicyear;
 
                 var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
@@ -182,12 +184,12 @@ namespace project_comp1640_be.Controllers
                 await _context.SaveChangesAsync();
 
                 // get user faculty
-                var userFaculty = _context.Users.Where(u => u.user_faculty_id.Equals(username)).Select(u => u.user_id).FirstOrDefault();
+                //var userFaculty = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
 
                 // fine faculty manager and send email
                 var maketingCondinatorUser = _context.Users.Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
                 var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                SendEmail(maketingCondinatorEmail);
+                SendEmail(maketingCondinatorEmail, con.contribution_id);
 
                 return Ok(new { Message = "Add article succeeded" });
             }
@@ -195,6 +197,243 @@ namespace project_comp1640_be.Controllers
             {
                 return BadRequest(new { Message = "Upload File Not Succeed - " + " Error: " + ex });
             }
+        }
+
+        [HttpPost("Update-Article")]
+        public async Task<IActionResult> UpdateArticle()
+        {
+            try
+            {
+                var httpRequest = HttpContext.Request.Form;
+
+                var title = httpRequest["title"];
+
+                var contributionID = httpRequest["contribution_id"];
+
+                var username = httpRequest["username"];
+
+                var submitDate = httpRequest["submitDate"];
+
+                var article = httpRequest.Files["uploadFile"];
+
+                var thumbnailImg = httpRequest.Files["uploadImage"];
+
+                if(article == null && thumbnailImg == null)
+                {
+                    var con = _context.Contributions
+                    .Where(c => c.contribution_id == int.Parse(contributionID))
+                    .Select(c => new Contributions
+                    {
+                        contribution_id = c.contribution_id,
+                        contribution_title = c.contribution_title,
+                        contribution_content = c.contribution_content,
+                        contribution_image = c.contribution_image,
+                        contribution_submition_date = c.contribution_submition_date,
+                        contribution_academic_years_id = c.contribution_academic_years_id,
+                        contribution_user_id = c.contribution_user_id
+                    })
+                    .FirstOrDefault();
+
+                    var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
+                    var userId = user.user_id;
+                    con.contribution_user_id = userId;
+
+                    con.contribution_id = int.Parse(contributionID);
+                    con.contribution_title = title;
+                    con.contribution_submition_date = DateTime.Parse(submitDate);
+
+                    _context.Contributions.Entry(con).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                }
+                else if(article != null && thumbnailImg == null)
+                {
+                    var con = _context.Contributions
+                    .Where(c => c.contribution_id == int.Parse(contributionID))
+                    .Select(c => new Contributions
+                    {
+                        contribution_id = c.contribution_id,
+                        contribution_title = c.contribution_title,
+                        contribution_content = c.contribution_content,
+                        contribution_image = c.contribution_image,
+                        contribution_submition_date = c.contribution_submition_date,
+                        contribution_academic_years_id = c.contribution_academic_years_id,
+                        contribution_user_id = c.contribution_user_id
+                    })
+                    .FirstOrDefault();
+
+                    if (IsWordFile(article.FileName))
+                    {
+                        // upload article
+                        con.contribution_content = await SaveFileAsync(article, "Articles");
+                    }
+                    else
+                    {
+                        return BadRequest(new { Message = "File Format Not Supported" });
+                    }
+
+                    var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
+                    var userId = user.user_id;
+                    con.contribution_user_id = userId;
+
+                    con.contribution_id = int.Parse(contributionID);
+                    con.contribution_title = title;
+                    con.contribution_content = article.FileName;
+                    con.contribution_submition_date = DateTime.Parse(submitDate);
+
+                    _context.Contributions.Entry(con).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+
+                    // get user faculty
+                    //var userFacultyID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
+
+                    // fine faculty manager and send email
+                    var maketingCondinatorUser = _context.Users
+                        .Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
+
+
+                    var maketingCondinatorEmail = maketingCondinatorUser.user_email;
+                    SendEmail(maketingCondinatorEmail, con.contribution_id);
+                }
+                else if(article == null && thumbnailImg  != null)
+                {
+                    var con = _context.Contributions
+                    .Where(c => c.contribution_id == int.Parse(contributionID))
+                    .Select(c => new Contributions
+                    {
+                        contribution_id = c.contribution_id,
+                        contribution_title = c.contribution_title,
+                        contribution_content = c.contribution_content,
+                        contribution_image = c.contribution_image,
+                        contribution_submition_date = c.contribution_submition_date,
+                        contribution_academic_years_id = c.contribution_academic_years_id,
+                        contribution_user_id = c.contribution_user_id
+                    })
+                    .FirstOrDefault();
+
+                    if (IsImageFile(thumbnailImg.FileName))
+                    {
+                        // upload tumbnail img
+                        con.contribution_image = await SaveFileAsync(thumbnailImg, "Imgs");
+                    }
+                    else
+                    {
+                        return BadRequest(new { Message = "File Format Not Supported" });
+                    }
+
+                    var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
+                    var userId = user.user_id;
+                    con.contribution_user_id = userId;
+
+                    con.contribution_id = int.Parse(contributionID);
+                    con.contribution_title = title;
+                    con.contribution_image = thumbnailImg.FileName;
+                    con.contribution_submition_date = DateTime.Parse(submitDate);
+
+                    _context.Contributions.Entry(con).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+
+                    // get user faculty
+                    //var userFacultyID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.faculties.faculty_id).FirstOrDefault();
+
+                    // fine faculty manager and send email
+                    var maketingCondinatorUser = _context.Users
+                        .Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
+
+
+                    var maketingCondinatorEmail = maketingCondinatorUser.user_email;
+                    SendEmail(maketingCondinatorEmail, con.contribution_id);
+                }
+                else
+                {
+                    var con = _context.Contributions
+                    .Where(c => c.contribution_id == int.Parse(contributionID))
+                    .Select(c => new Contributions
+                    {
+                        contribution_id = c.contribution_id,
+                        contribution_title = c.contribution_title,
+                        contribution_content = c.contribution_content,
+                        contribution_image = c.contribution_image,
+                        contribution_submition_date = c.contribution_submition_date,
+                        contribution_academic_years_id = c.contribution_academic_years_id,
+                        contribution_user_id = c.contribution_user_id
+                    })
+                    .FirstOrDefault();
+
+                    if (IsWordFile(article.FileName) && IsImageFile(thumbnailImg.FileName))
+                    {
+                        // upload article
+                        con.contribution_content = await SaveFileAsync(article, "Articles");
+                        // upload tumbnail img
+                        con.contribution_image = await SaveFileAsync(thumbnailImg, "Imgs");
+                    }
+                    else
+                    {
+                        return BadRequest(new { Message = "File Format Not Supported" });
+                    }
+
+                    var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
+                    var userId = user.user_id;
+                    con.contribution_user_id = userId;
+
+                    con.contribution_id = int.Parse(contributionID);
+                    con.contribution_title = title;
+                    con.contribution_content = article.FileName;
+                    con.contribution_image = thumbnailImg.FileName;
+                    con.contribution_submition_date = DateTime.Parse(submitDate);
+
+                    _context.Contributions.Entry(con).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+
+                    // get user faculty
+                    //var userFacultyID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.faculties.faculty_id).FirstOrDefault();
+
+                    // fine faculty manager and send email
+                    var maketingCondinatorUser = _context.Users
+                        .Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
+
+
+                    var maketingCondinatorEmail = maketingCondinatorUser.user_email;
+                    SendEmail(maketingCondinatorEmail, con.contribution_id);
+                }
+
+                return Ok(new { Message = "Update article succeeded" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "Upload File Not Succeed - " + " Error: " + ex });
+            }
+        }
+
+        //load file word to html
+        private async Task<String> LoadWordFile(string fileName)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                Document doc = new Document(filePath);
+
+                // doc.RemoveMacros();
+
+                MemoryStream stream = new MemoryStream();
+
+                HtmlSaveOptions options = new HtmlSaveOptions();
+                options.ExportImagesAsBase64 = true;
+
+                doc.Save(stream, options);
+
+                stream.Position = 0;
+
+                string htmlContent = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
+
+
+                htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
+
+                htmlContent = htmlContent.Replace("This document was truncated here because it was created in the Evaluation Mode.", "");
+
+                return htmlContent;
+            }
+            return "File not found";
         }
 
         [HttpGet("Get-Article")]
@@ -210,7 +449,10 @@ namespace project_comp1640_be.Controllers
             {
                 return NotFound(new { Message = "Couldn't find" });
             }
-            return Ok(contribution);
+
+            var wordFile = LoadWordFile(contribution.contribution_content);
+
+            return  Ok(wordFile);
         }
 
         [HttpGet("Get-All-Articles")]
@@ -249,6 +491,7 @@ namespace project_comp1640_be.Controllers
             return Ok(new { Message = "Contribution is deleted" });
         }
 
+
         [HttpPut]
         public async Task<IActionResult> updateContribution(Contributions contributions)
         {
@@ -273,11 +516,9 @@ namespace project_comp1640_be.Controllers
             var contribution = _context.Contributions.FirstOrDefault(c => c.contribution_id == contribution_id);
 
             if (contribution == null) return BadRequest(new { Message = "Contribution is not found" });
-            
-            DeleteFile(contribution.contribution_image, "Imgs");
 
             contribution.contribution_image = await SaveFileAsync(file, "Imgs");
- 
+
             _context.Entry(contribution).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
@@ -308,6 +549,8 @@ namespace project_comp1640_be.Controllers
 
             return Ok(lstPublicContribution);
         }
+
+
 
         [HttpGet("Download-Articles")]
         public async Task<IActionResult> DownloadFiles(string fileNames)

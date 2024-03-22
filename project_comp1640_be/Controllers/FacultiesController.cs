@@ -83,5 +83,19 @@ namespace project_comp1640_be.Controllers
 
             return Ok(new { Message = "Update faculty successfull" });
         }
+
+        [HttpDelete]
+        public async Task<IActionResult> deleteFAculty(int faculty_id)
+        {
+            var faculty = _context.Faculties.Where(f => f.faculty_id.Equals(faculty_id)).FirstOrDefault();
+
+            if (faculty == null)
+                return NotFound(new { Message = "Faculty is not found" });
+
+            _context.Faculties.Remove(faculty);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Delete Fculty Succeed" });
+        }
     }
 }

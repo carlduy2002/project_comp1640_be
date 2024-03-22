@@ -36,5 +36,7 @@ namespace project_comp1640_be.Data
                 .HasForeignKey(m => m.comment_contribution_id)
                 .OnDelete(DeleteBehavior.NoAction);
         }
+
+        
     }
 }

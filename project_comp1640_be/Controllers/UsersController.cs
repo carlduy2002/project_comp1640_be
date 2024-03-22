@@ -40,7 +40,7 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "Admin")]
+        //[Authorize(Policy = "Admin")]
         public async Task<IActionResult> getAllUsers()
         {
             var lstUsers = _context.Users.ToList();
@@ -100,7 +100,7 @@ namespace project_comp1640_be.Controllers
         {
             StringBuilder sb = new StringBuilder();
 
-            if (!(Regex.IsMatch(email, "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")))
+            if (!(Regex.IsMatch(email, "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}")))
                 sb.Append("Email is invalid" + Environment.NewLine);
 
             return sb.ToString();
@@ -155,6 +155,53 @@ namespace project_comp1640_be.Controllers
             //return Ok();
         }
 
+        //22/3/2024
+        [HttpPut("check-old-password")]
+        public async Task<IActionResult> checkOldPassword(int user_id, string password)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(a => a.user_id == user_id);
+
+            if (user == null)
+                return NotFound(new { Message = "User not found!" });
+
+            if (!PasswordHasher.VerifyPassword(password, user.user_password))
+                return BadRequest(new { Message = "Password is incorrectly!" });
+
+            return Ok();
+        }
+
+        //22/3/2024
+        [HttpPut("ChangePassword")]
+        public async Task<IActionResult> ChangePassword(string newPass, string conPass, int user_id)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.user_id == user_id);
+
+            if (user == null)
+                return NotFound(new { Message = "User not found!" });
+
+            var pwd = CheckPasswordValid(newPass);
+            if (!string.IsNullOrEmpty(pwd))
+                return BadRequest(new { Message = pwd.ToString() });
+
+            if (PasswordHasher.VerifyPassword(newPass, user.user_password))
+                return BadRequest(new { Message = "This password already exists before, please enter another password!" });
+
+            if (conPass != newPass)
+                return BadRequest(new { Message = "Password and Confirm Password is not match!" });
+
+            user.user_status = user_status.Unlock;
+            user.user_password = PasswordHasher.HashPassword(newPass);
+            user.user_confirm_password = PasswordHasher.HashPassword(conPass);
+
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                Message = "Change Password Succeed"
+            });
+        }
+
         private string CreateJwt(Users acc)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
@@ -163,7 +210,7 @@ namespace project_comp1640_be.Controllers
             var user = _context.Roles
             .Join(_context.Users.Where(u => u.user_username == acc.user_username),
                 role => role.role_id,
-                user => user.user_role_id,
+                user => user.role.role_id,
                 (role, user) => new
                 {
                     role_name = role.role_name,
