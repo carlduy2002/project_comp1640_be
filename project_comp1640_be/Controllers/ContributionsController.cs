@@ -17,6 +17,7 @@ using System.Text.RegularExpressions;
 using System.Text;
 using IEmailService = project_comp1640_be.UtilityService.IEmailService;
 using Aspose.Words;
+using Microsoft.AspNetCore.Html;
 
 
 namespace project_comp1640_be.Controllers
@@ -80,7 +81,15 @@ namespace project_comp1640_be.Controllers
                    fileType.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
                    fileType.Equals(".png", StringComparison.OrdinalIgnoreCase);
         }
+        private void DeleteFile(string fileName, string directory)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), directory, fileName);
 
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+        }
         // send email function
         private void SendEmail(string email)
         {
@@ -94,7 +103,8 @@ namespace project_comp1640_be.Controllers
         }
 
         //load file word to html
-        public async Task<String> LoadWordFile(string fileName)
+        [HttpGet("Load-file")]
+        public async Task<IActionResult> LoadWordFile(string fileName)
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
 
@@ -113,13 +123,15 @@ namespace project_comp1640_be.Controllers
 
                 stream.Position = 0;
 
-                string htmlContent = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
+                StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+                string htmlContent = reader.ReadToEnd();
 
                 htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
 
-                return htmlContent;
+                return Content(htmlContent, "text/html");
             }
-            return "File not found";
+
+            return NotFound("File not found");
         }
 
         [HttpPost("Add-New-Article")]
@@ -261,9 +273,11 @@ namespace project_comp1640_be.Controllers
             var contribution = _context.Contributions.FirstOrDefault(c => c.contribution_id == contribution_id);
 
             if (contribution == null) return BadRequest(new { Message = "Contribution is not found" });
+            
+            DeleteFile(contribution.contribution_image, "Imgs");
 
             contribution.contribution_image = await SaveFileAsync(file, "Imgs");
-
+ 
             _context.Entry(contribution).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
@@ -295,6 +309,33 @@ namespace project_comp1640_be.Controllers
             return Ok(lstPublicContribution);
         }
 
+        [HttpGet("Download-Articles")]
+        public async Task<IActionResult> DownloadFiles(string fileNames)
+        {
+            string[] arrFileNames;
 
+            arrFileNames = fileNames.Split(',');
+   
+            var zipFileName = "download.zip";
+
+            MemoryStream streamFile = new MemoryStream();
+
+            using (var zipArchive = new ZipArchive(streamFile, ZipArchiveMode.Create, true))
+            {
+                foreach (var fileName in arrFileNames)
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        var entryName = Path.GetFileName(filePath);
+                        zipArchive.CreateEntryFromFile(filePath, entryName);
+                    }
+                }
+            }
+
+            streamFile.Position = 0;
+
+            return File(streamFile, "application/zip", zipFileName);
+        }
     }
 }
