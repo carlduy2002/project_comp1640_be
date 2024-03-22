@@ -155,6 +155,7 @@ namespace project_comp1640_be.Controllers
             //return Ok();
         }
 
+        //22/3/2024
         [HttpPut("check-old-password")]
         public async Task<IActionResult> checkOldPassword(int user_id, string password)
         {
@@ -169,6 +170,7 @@ namespace project_comp1640_be.Controllers
             return Ok();
         }
 
+        //22/3/2024
         [HttpPut("ChangePassword")]
         public async Task<IActionResult> ChangePassword(string newPass, string conPass, int user_id)
         {
