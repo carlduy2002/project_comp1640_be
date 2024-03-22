@@ -453,6 +453,28 @@ namespace project_comp1640_be.Controllers
             return Ok(contribution);
         }
 
+        [HttpGet("Get-Article-Of-Student")]
+        public async Task<IActionResult> GetArticleByUsername(string username)
+        {
+            if (username == null)
+            {
+                return BadRequest(new { Message = "Data is null" });
+            }
+
+            var userID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault(); 
+
+            var contribution =  _context.Contributions
+                .Where(c => c.contribution_user_id.Equals(userID) && c.IsEnabled.Equals(IsEnabled.Enabled)).ToList();
+            if (contribution == null)
+            {
+                return NotFound(new { Message = "Couldn't find" });
+            }
+
+            //var wordFile = LoadWordFile(contribution.contribution_content);
+
+            return Ok(contribution);
+        }
+
         [HttpGet("Get-All-Articles")]
         public async Task<IActionResult> GetAllArticles()
         {
@@ -472,7 +494,7 @@ namespace project_comp1640_be.Controllers
 
         }
 
-        [HttpGet("delete-contribution")]
+        [HttpDelete("delete-contribution")]
         public async Task<IActionResult> deleteContribution(int contribution_id)
         {
             if (contribution_id == null) { return BadRequest(new { Message = "Data is provided is null" }); }
@@ -502,7 +524,38 @@ namespace project_comp1640_be.Controllers
             return Ok(new { Message = "Update Contribution Succeed" });
         }
 
+        [HttpGet("GetContributionByFaculty")]
+        public async Task<IActionResult> GetContributionByFaculty(string username)
+        {
+            var user = _context.Users
+                .Where(u => u.user_username.Equals(username))
+                .Select(u => u.user_faculty_id)
+                .FirstOrDefault();
 
+
+            var lstUser = _context.Users
+                .Where(l => l.user_faculty_id.Equals(user) && l.user_role_id.Equals(4))
+                .Select(l => l.user_id)
+                .ToList();
+
+            List<Contributions> lstContribution = new List<Contributions>();
+
+            foreach(var i in lstUser)
+            {
+                var contribution = _context.Contributions
+                    .Where(c => c.contribution_user_id.Equals(i) && c.IsEnabled.Equals(IsEnabled.Enabled))
+                    .ToList();
+                foreach(var a in contribution)
+                {
+                    lstContribution.Add(a);
+                }
+            }
+
+            if (lstContribution.Count == 0)
+                return BadRequest(new { Message = "Don't have any contribution in this faculty" });
+
+            return Ok(lstContribution);
+        }
 
     }
 }
