@@ -82,7 +82,7 @@ namespace project_comp1640_be.Controllers
             return Ok(new { Message = "Update Academic Year successfully" });
         }
 
-
+        //duy
         [HttpDelete]
         public async Task<IActionResult> deleteAcademic(int academic_year_id)
         {
