@@ -94,7 +94,7 @@ namespace project_comp1640_be.Controllers
         }
 
         //load file word to html
-        public async Task<String> LoadWordFile(string fileName)
+        private async Task<String> LoadWordFile(string fileName)
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
 
@@ -115,7 +115,10 @@ namespace project_comp1640_be.Controllers
 
                 string htmlContent = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
 
+
                 htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
+
+                htmlContent = htmlContent.Replace("This document was truncated here because it was created in the Evaluation Mode.", "");
 
                 return htmlContent;
             }
@@ -186,19 +189,17 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpGet("Get-Article")]
-        public async Task<IActionResult> GetArticleById(int contribution_id)
+        public async Task<IActionResult> GetArticleById()
         {
-            if (contribution_id == null)
-            {
-                return BadRequest(new { Message = "Data is null" });
-            }
 
-            var contribution = await _context.Contributions.FindAsync(contribution_id);
+            var contribution = await _context.Contributions.FindAsync(1);
             if (contribution == null)
             {
                 return NotFound(new { Message = "Couldn't find" });
             }
-            return Ok(contribution);
+
+            var htmlFile = LoadWordFile(contribution.contribution_content);
+            return Ok(htmlFile);
         }
 
         [HttpGet("Get-All-Articles")]

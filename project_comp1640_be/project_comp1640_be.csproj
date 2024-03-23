@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Articles\" />
     <Folder Include="Imgs\" />
   </ItemGroup>
 
