@@ -455,6 +455,28 @@ namespace project_comp1640_be.Controllers
             return  Ok(wordFile);
         }
 
+        [HttpGet("Get-Article-Of-Student")]
+        public async Task<IActionResult> GetArticleByUsername(string username)
+        {
+            if (username == null)
+            {
+                return BadRequest(new { Message = "Data is null" });
+            }
+
+            var userID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault(); 
+
+            var contribution =  _context.Contributions
+                .Where(c => c.contribution_user_id.Equals(userID) && c.IsEnabled.Equals(IsEnabled.Enabled)).ToList();
+            if (contribution == null)
+            {
+                return NotFound(new { Message = "Couldn't find" });
+            }
+
+            //var wordFile = LoadWordFile(contribution.contribution_content);
+
+            return Ok(contribution);
+        }
+
         [HttpGet("Get-All-Articles")]
         public async Task<IActionResult> GetAllArticles()
         {
@@ -474,7 +496,7 @@ namespace project_comp1640_be.Controllers
 
         }
 
-        [HttpGet("delete-contribution")]
+        [HttpDelete("delete-contribution")]
         public async Task<IActionResult> deleteContribution(int contribution_id)
         {
             if (contribution_id == null) { return BadRequest(new { Message = "Data is provided is null" }); }

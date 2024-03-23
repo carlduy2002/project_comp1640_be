@@ -39,11 +39,22 @@ namespace project_comp1640_be.Controllers
             _env = env;
         }
 
+        //just change 22/3/2024
         [HttpGet]
         //[Authorize(Policy = "Admin")]
         public async Task<IActionResult> getAllUsers()
         {
-            var lstUsers = _context.Users.ToList();
+            var lstUsers = _context.Users
+                .Include(u => u.role)
+                .Select(u => new
+                {
+                    user_id = u.user_id,
+                    user_username = u.user_username,
+                    user_email = u.user_email,
+                    role_name = u.role.role_name,
+                    user_status = u.user_status
+                })
+                .ToList();
 
             return Ok(lstUsers);
         }
