@@ -82,5 +82,20 @@ namespace project_comp1640_be.Controllers
             return Ok(new { Message = "Update Academic Year successfully" });
         }
 
+
+        [HttpDelete]
+        public async Task<IActionResult> deleteAcademic(int academic_year_id)
+        {
+            var academic = _context.Academic_Years.Where(a => a.academic_year_id == academic_year_id).FirstOrDefault();
+
+            if (academic == null)
+                return BadRequest(new { Message = "Delete Failed" });
+
+            _context.Academic_Years.Remove(academic);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Delete Succeed" });
+        }
+
     }
 }

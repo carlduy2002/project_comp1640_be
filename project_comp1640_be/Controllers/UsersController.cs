@@ -168,9 +168,9 @@ namespace project_comp1640_be.Controllers
 
         //22/3/2024
         [HttpPut("check-old-password")]
-        public async Task<IActionResult> checkOldPassword(int user_id, string password)
+        public async Task<IActionResult> checkOldPassword(string username, string password)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(a => a.user_id == user_id);
+            var user = await _context.Users.FirstOrDefaultAsync(a => a.user_username == username);
 
             if (user == null)
                 return NotFound(new { Message = "User not found!" });
@@ -183,9 +183,9 @@ namespace project_comp1640_be.Controllers
 
         //22/3/2024
         [HttpPut("ChangePassword")]
-        public async Task<IActionResult> ChangePassword(string newPass, string conPass, int user_id)
+        public async Task<IActionResult> ChangePassword(string newPass, string conPass, string username)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.user_id == user_id);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.user_username == username);
 
             if (user == null)
                 return NotFound(new { Message = "User not found!" });
