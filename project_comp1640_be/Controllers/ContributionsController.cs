@@ -17,6 +17,7 @@ using System.Text.RegularExpressions;
 using System.Text;
 using IEmailService = project_comp1640_be.UtilityService.IEmailService;
 using Aspose.Words;
+using project_comp1640_be.Model.Dto;
 
 namespace project_comp1640_be.Controllers
 {
@@ -511,6 +512,21 @@ namespace project_comp1640_be.Controllers
             return Ok(new { Message = "Contribution is deleted" });
         }
 
+        [HttpPut("View")]
+        public async Task<IActionResult> View(int contribution_id)
+        {
+            var contribution = _context.Contributions.Where(c => c.contribution_id == contribution_id).FirstOrDefault();
+
+            if (contribution == null)
+                return BadRequest(new { Message = "Cannot change status view" });
+
+            contribution.IsView = IsView.View;
+
+            _context.Entry(contribution).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
 
         [HttpPut]
         public async Task<IActionResult> updateContribution(Contributions contributions)
@@ -538,12 +554,25 @@ namespace project_comp1640_be.Controllers
                 .Select(l => l.user_id)
                 .ToList();
 
-            List<Contributions> lstContribution = new List<Contributions>();
+            List<ContributionDTO> lstContribution = new List<ContributionDTO>();
 
             foreach(var i in lstUser)
             {
                 var contribution = _context.Contributions
+                    .Include(c => c.users)
+                    .Include(c => c.academic_years)
                     .Where(c => c.contribution_user_id.Equals(i) && c.IsEnabled.Equals(IsEnabled.Enabled))
+                    .Select(c => new ContributionDTO
+                    {
+                        contribution_id = c.contribution_id,
+                        user_id = c.users.user_id,
+                        username = c.users.user_username,
+                        contribution_image = c.contribution_image,
+                        contribution_title = c.contribution_title,
+                        contribution_submition_date = c.contribution_submition_date,
+                        final_clouser_date = c.academic_years.academic_year_endClosureDate,
+                        isView = c.IsView.ToString(),
+                    })
                     .ToList();
                 foreach(var a in contribution)
                 {
