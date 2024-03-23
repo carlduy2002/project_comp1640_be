@@ -68,7 +68,7 @@ namespace projectcomp1640be.Migrations
                     resetpasswordtoken = table.Column<string>(name: "reset_password_token", type: "varchar(255)", nullable: true),
                     resetpasswordexprytime = table.Column<DateTime>(name: "reset_password_exprytime", type: "datetime2", nullable: true),
                     userstatus = table.Column<string>(name: "user_status", type: "varchar(10)", nullable: false),
-                    useravatar = table.Column<string>(name: "user_avatar", type: "varchar(255)", nullable: false),
+                    useravatar = table.Column<string>(name: "user_avatar", type: "varchar(255)", nullable: true),
                     userroleid = table.Column<int>(name: "user_role_id", type: "int", nullable: false),
                     userfacultyid = table.Column<int>(name: "user_faculty_id", type: "int", nullable: false)
                 },

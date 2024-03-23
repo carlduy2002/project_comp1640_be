@@ -183,7 +183,6 @@ namespace projectcomp1640be.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("user_avatar")
-                        .IsRequired()
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("user_confirm_password")

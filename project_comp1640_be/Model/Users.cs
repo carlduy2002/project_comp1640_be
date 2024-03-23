@@ -1,11 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace project_comp1640_be.Model
 {
     public class Users
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int user_id { get; set; }
 
         [Required]
@@ -40,9 +41,8 @@ namespace project_comp1640_be.Model
         [Column(TypeName = "varchar(10)")]
         public user_status user_status { get; set; } = user_status.Unlock;
 
-        [Required]
         [Column(TypeName = "varchar(255)")]
-        public string user_avatar { get; set; }
+        public string? user_avatar { get; set; }
 
         [ForeignKey("role")]
         public int user_role_id { get; set; }

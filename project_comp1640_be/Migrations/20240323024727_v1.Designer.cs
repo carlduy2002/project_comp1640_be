@@ -12,7 +12,7 @@ using project_comp1640_be.Data;
 namespace projectcomp1640be.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240319095118_v1")]
+    [Migration("20240323024727_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -186,7 +186,6 @@ namespace projectcomp1640be.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("user_avatar")
-                        .IsRequired()
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("user_confirm_password")
