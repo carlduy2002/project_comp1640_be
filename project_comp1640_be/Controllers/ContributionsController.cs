@@ -550,7 +550,7 @@ namespace project_comp1640_be.Controllers
 
 
             var lstUser = _context.Users
-                .Where(l => l.user_faculty_id.Equals(user) && l.user_role_id.Equals(4))
+                .Where(l => l.user_faculty_id.Equals(user) && l.role.role_name.Equals("Student"))
                 .Select(l => l.user_id)
                 .ToList();
 

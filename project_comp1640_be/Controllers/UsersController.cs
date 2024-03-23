@@ -232,7 +232,7 @@ namespace project_comp1640_be.Controllers
             string roleName = "";
             string userName = "";
 
-            foreach(var item in user)
+            foreach (var item in user)
             {
                 roleName = item.role_name;
                 userName = item.name;
@@ -348,6 +348,14 @@ namespace project_comp1640_be.Controllers
                 StatusCode = 200,
                 Message = "Reset Password Successfully"
             });
+        }
+
+        [HttpGet("get-user-id")]
+        public async Task<IActionResult> getUserID(string user_username)
+        {
+            var userID = await _context.Users.Where(u => u.user_username == user_username).Select(u=>u.user_id).FirstOrDefaultAsync();
+
+            return Ok(userID);
         }
     }
 }
