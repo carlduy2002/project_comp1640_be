@@ -72,8 +72,6 @@ namespace project_comp1640_be.Controllers
             return Ok(article);
         }
 
-
-
         private async Task<string> SaveFileAsync(IFormFile file, string directory)
         {
             if (file == null || file.Length == 0)
@@ -116,50 +114,25 @@ namespace project_comp1640_be.Controllers
                    fileType.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
                    fileType.Equals(".png", StringComparison.OrdinalIgnoreCase);
         }
+        private void DeleteFile(string fileName, string directory)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), directory, fileName);
 
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+        }
         // send email function
-        private void SendEmail(string email)
+        private void SendEmail(string email, int contributionId)
         {
             var tokenBytes = RandomNumberGenerator.GetBytes(64);
             var emailToken = Convert.ToBase64String(tokenBytes);
 
             string from = _configuration["EmailSettings:From"];
-            var emailBody = EmailBody.AddNewArticleEmailStringBody();
+            var emailBody = EmailBody.AddNewArticleEmailStringBody(contributionId);
             var emailModel = new EmailModel(email, "New ariticle posted!!", emailBody);
             _emailService.SendEmail(emailModel);
-        }
-
-        
-        private IActionResult LoadWordFile(string fileName)
-        {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
-
-            //if (System.IO.File.Exists(filePath))
-            //{
-            //    Document doc = new Document(filePath);
-
-            //    // doc.RemoveMacros();
-
-            //    MemoryStream stream = new MemoryStream();
-
-            //    HtmlSaveOptions options = new HtmlSaveOptions();
-            //    options.ExportImagesAsBase64 = true;
-
-            //    doc.Save(stream, options);
-
-            //    stream.Position = 0;
-
-            //    string htmlContent = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
-
-            //    htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
-
-            //    return htmlContent;
-            //}
-            //return "File not found";
-
-            byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
-
-            return File(fileBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
         }
 
 
@@ -216,7 +189,7 @@ namespace project_comp1640_be.Controllers
                 // fine faculty manager and send email
                 var maketingCondinatorUser = _context.Users.Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
                 var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                SendEmail(maketingCondinatorEmail);
+                SendEmail(maketingCondinatorEmail, con.contribution_id);
 
                 return Ok(new { Message = "Add article succeeded" });
             }
@@ -319,7 +292,7 @@ namespace project_comp1640_be.Controllers
 
 
                     var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                    SendEmail(maketingCondinatorEmail);
+                    SendEmail(maketingCondinatorEmail, con.contribution_id);
                 }
                 else if(article == null && thumbnailImg  != null)
                 {
@@ -368,7 +341,7 @@ namespace project_comp1640_be.Controllers
 
 
                     var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                    SendEmail(maketingCondinatorEmail);
+                    SendEmail(maketingCondinatorEmail, con.contribution_id);
                 }
                 else
                 {
@@ -420,7 +393,7 @@ namespace project_comp1640_be.Controllers
 
 
                     var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                    SendEmail(maketingCondinatorEmail);
+                    SendEmail(maketingCondinatorEmail, con.contribution_id);
                 }
 
                 return Ok(new { Message = "Update article succeeded" });
@@ -431,6 +404,37 @@ namespace project_comp1640_be.Controllers
             }
         }
 
+        //load file word to html
+        private async Task<String> LoadWordFile(string fileName)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                Document doc = new Document(filePath);
+
+                // doc.RemoveMacros();
+
+                MemoryStream stream = new MemoryStream();
+
+                HtmlSaveOptions options = new HtmlSaveOptions();
+                options.ExportImagesAsBase64 = true;
+
+                doc.Save(stream, options);
+
+                stream.Position = 0;
+
+                string htmlContent = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
+
+
+                htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
+
+                htmlContent = htmlContent.Replace("This document was truncated here because it was created in the Evaluation Mode.", "");
+
+                return htmlContent;
+            }
+            return "File not found";
+        }
 
         [HttpGet("Get-Article")]
         public async Task<IActionResult> GetArticleById()
@@ -442,9 +446,9 @@ namespace project_comp1640_be.Controllers
                 return NotFound(new { Message = "Couldn't find" });
             }
 
-            //var wordFile = LoadWordFile(contribution.contribution_content);
+            var wordFile = LoadWordFile(contribution.contribution_content);
 
-            return Ok(contribution);
+            return  Ok(wordFile);
         }
 
         [HttpGet("Get-Article-Of-Student")]
@@ -518,38 +522,81 @@ namespace project_comp1640_be.Controllers
             return Ok(new { Message = "Update Contribution Succeed" });
         }
 
-        [HttpGet("GetContributionByFaculty")]
-        public async Task<IActionResult> GetContributionByFaculty(string username)
+        [HttpPut("update-thumbnail")]
+        public async Task<IActionResult> updateThumbnail(int contribution_id)
         {
-            var user = _context.Users
-                .Where(u => u.user_username.Equals(username))
-                .Select(u => u.user_faculty_id)
-                .FirstOrDefault();
+            if (contribution_id == 0 || contribution_id == null) return BadRequest(new { Message = "Contribution ID is null" });
+
+            var file = Request.Form.Files["uploadImage"];
+
+            if (file == null) return BadRequest(new { Message = "image file is null" });
+
+            var contribution = _context.Contributions.FirstOrDefault(c => c.contribution_id == contribution_id);
+
+            if (contribution == null) return BadRequest(new { Message = "Contribution is not found" });
+
+            contribution.contribution_image = await SaveFileAsync(file, "Imgs");
+
+            _context.Entry(contribution).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Update image thumbnail successfully" });
+        }
+
+        [HttpPut("public-contribution")]
+        public async Task<IActionResult> publicContribution(int contribution_id)
+        {
+            if (contribution_id == null) { return BadRequest(new { Message = "Data is provided is null" }); }
+
+            var contribution = await _context.Contributions.FirstOrDefaultAsync(c => c.contribution_id == contribution_id);
+
+            if (contribution == null) { return BadRequest(new { Message = "Contribution is not found" }); }
+
+            contribution.IsSelected = IsSelected.Selected;
+
+            _context.Entry(contribution).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Contribution is deleted" });
+        }
+
+        [HttpGet("get-all-public-contribution")]
+        public async Task<IActionResult> getAllPublicContribution()
+        {
+            var lstPublicContribution = _context.Contributions.Where(c => c.IsSelected == IsSelected.Selected).ToList();
+
+            return Ok(lstPublicContribution);
+        }
 
 
-            var lstUser = _context.Users
-                .Where(l => l.user_faculty_id.Equals(user) && l.user_role_id.Equals(4))
-                .Select(l => l.user_id)
-                .ToList();
 
-            List<Contributions> lstContribution = new List<Contributions>();
+        [HttpGet("Download-Articles")]
+        public async Task<IActionResult> DownloadFiles(string fileNames)
+        {
+            string[] arrFileNames;
 
-            foreach(var i in lstUser)
+            arrFileNames = fileNames.Split(',');
+   
+            var zipFileName = "download.zip";
+
+            MemoryStream streamFile = new MemoryStream();
+
+            using (var zipArchive = new ZipArchive(streamFile, ZipArchiveMode.Create, true))
             {
-                var contribution = _context.Contributions
-                    .Where(c => c.contribution_user_id.Equals(i) && c.IsEnabled.Equals(IsEnabled.Enabled))
-                    .ToList();
-                foreach(var a in contribution)
+                foreach (var fileName in arrFileNames)
                 {
-                    lstContribution.Add(a);
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        var entryName = Path.GetFileName(filePath);
+                        zipArchive.CreateEntryFromFile(filePath, entryName);
+                    }
                 }
             }
 
-            if (lstContribution.Count == 0)
-                return BadRequest(new { Message = "Don't have any contribution in this faculty" });
+            streamFile.Position = 0;
 
-            return Ok(lstContribution);
+            return File(streamFile, "application/zip", zipFileName);
         }
-
     }
 }
