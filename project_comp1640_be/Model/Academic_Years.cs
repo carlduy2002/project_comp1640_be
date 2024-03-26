@@ -13,11 +13,11 @@ namespace project_comp1640_be.Model
         public string academic_year_title { get; set; }
 
         [Required]
-        public DateTime academic_year_startClosureDate { get; set; }
+        public DateTime academic_year_ClosureDate { get; set; }
 
         [Required]
-        public DateTime academic_year_endClosureDate { get; set; }
-
+        public DateTime academic_year_FinalClosureDate { get; set; }
+    
         public ICollection<Contributions>? contributions { get; set; }
     }
 }

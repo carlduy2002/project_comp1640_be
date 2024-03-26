@@ -35,6 +35,10 @@ namespace project_comp1640_be.Model
         [Column(TypeName = "varchar(10)")]
         public IsView IsView { get; set; }
 
+        [Required]
+        [Column(TypeName = "varchar(10)")]
+        public IsPublic IsPublic { get; set; }
+
         [ForeignKey("users")]
         public int contribution_user_id { get; set; }
         public virtual Users? users { get; set; }
@@ -59,5 +63,10 @@ namespace project_comp1640_be.Model
     public enum IsView 
     {
         View, Unview
+    }
+
+    public enum IsPublic
+    {
+        Private, Public
     }
 }

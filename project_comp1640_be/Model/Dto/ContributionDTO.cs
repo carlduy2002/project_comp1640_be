@@ -13,6 +13,7 @@
         public string isSelected { get; set; }
 
         public string isEnabled { get; set; }
+        public string isPublic { get; set; }
 
     }
 }

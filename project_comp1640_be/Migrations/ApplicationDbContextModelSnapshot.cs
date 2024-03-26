@@ -30,10 +30,10 @@ namespace projectcomp1640be.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("academic_year_id"));
 
-                    b.Property<DateTime>("academic_year_endClosureDate")
+                    b.Property<DateTime>("academic_year_ClosureDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("academic_year_startClosureDate")
+                    b.Property<DateTime>("academic_year_FinalClosureDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("academic_year_title")
@@ -54,6 +54,10 @@ namespace projectcomp1640be.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("contribution_id"));
 
                     b.Property<string>("IsEnabled")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("IsPublic")
                         .IsRequired()
                         .HasColumnType("varchar(10)");
 

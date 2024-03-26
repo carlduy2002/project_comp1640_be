@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace projectcomp1640be.Migrations
 {
     /// <inheritdoc />
-    public partial class Migrations : Migration
+    public partial class _26324 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,8 +18,8 @@ namespace projectcomp1640be.Migrations
                     academicyearid = table.Column<int>(name: "academic_year_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     academicyeartitle = table.Column<string>(name: "academic_year_title", type: "varchar(255)", nullable: false),
-                    academicyearstartClosureDate = table.Column<DateTime>(name: "academic_year_startClosureDate", type: "datetime2", nullable: false),
-                    academicyearendClosureDate = table.Column<DateTime>(name: "academic_year_endClosureDate", type: "datetime2", nullable: false)
+                    academicyearClosureDate = table.Column<DateTime>(name: "academic_year_ClosureDate", type: "datetime2", nullable: false),
+                    academicyearFinalClosureDate = table.Column<DateTime>(name: "academic_year_FinalClosureDate", type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -102,6 +102,7 @@ namespace projectcomp1640be.Migrations
                     IsEnabled = table.Column<string>(type: "varchar(10)", nullable: false),
                     IsSelected = table.Column<string>(type: "varchar(10)", nullable: false),
                     IsView = table.Column<string>(type: "varchar(10)", nullable: false),
+                    IsPublic = table.Column<string>(type: "varchar(10)", nullable: false),
                     contributionuserid = table.Column<int>(name: "contribution_user_id", type: "int", nullable: false),
                     contributionacademicyearsid = table.Column<int>(name: "contribution_academic_years_id", type: "int", nullable: false)
                 },
