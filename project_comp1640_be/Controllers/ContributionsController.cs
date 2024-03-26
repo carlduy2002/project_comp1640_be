@@ -119,18 +119,18 @@ namespace project_comp1640_be.Controllers
         }
 
         // send email function
-        private void SendEmail(string email)
+        private void SendEmail(string email, int contributionId)
         {
             var tokenBytes = RandomNumberGenerator.GetBytes(64);
             var emailToken = Convert.ToBase64String(tokenBytes);
 
             string from = _configuration["EmailSettings:From"];
-            var emailBody = EmailBody.AddNewArticleEmailStringBody();
+            var emailBody = EmailBody.AddNewArticleEmailStringBody(contributionId);
             var emailModel = new EmailModel(email, "New ariticle posted!!", emailBody);
             _emailService.SendEmail(emailModel);
         }
 
-        
+
         private IActionResult LoadWordFile(string fileName)
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
@@ -220,7 +220,7 @@ namespace project_comp1640_be.Controllers
                 // fine faculty manager and send email
                 var maketingCondinatorUser = _context.Users.Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
                 var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                SendEmail(maketingCondinatorEmail);
+                SendEmail(maketingCondinatorEmail, con.contribution_id);
 
                 return Ok(new { Message = "Add article succeeded" });
             }
@@ -236,7 +236,6 @@ namespace project_comp1640_be.Controllers
             try
             {
                 var httpRequest = HttpContext.Request.Form;
-
                 var title = httpRequest["title"];
 
                 var contributionID = httpRequest["contribution_id"];
@@ -249,7 +248,7 @@ namespace project_comp1640_be.Controllers
 
                 var thumbnailImg = httpRequest.Files["uploadImage"];
 
-                if(article == null && thumbnailImg == null)
+                if (article == null && thumbnailImg == null)
                 {
                     var con = _context.Contributions
                     .Where(c => c.contribution_id == int.Parse(contributionID))
@@ -276,7 +275,7 @@ namespace project_comp1640_be.Controllers
                     _context.Contributions.Entry(con).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
                 }
-                else if(article != null && thumbnailImg == null)
+                else if (article != null && thumbnailImg == null)
                 {
                     var con = _context.Contributions
                     .Where(c => c.contribution_id == int.Parse(contributionID))
@@ -323,9 +322,9 @@ namespace project_comp1640_be.Controllers
 
 
                     var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                    SendEmail(maketingCondinatorEmail);
+                    SendEmail(maketingCondinatorEmail, con.contribution_id);
                 }
-                else if(article == null && thumbnailImg  != null)
+                else if (article == null && thumbnailImg != null)
                 {
                     var con = _context.Contributions
                     .Where(c => c.contribution_id == int.Parse(contributionID))
@@ -372,7 +371,7 @@ namespace project_comp1640_be.Controllers
 
 
                     var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                    SendEmail(maketingCondinatorEmail);
+                    SendEmail(maketingCondinatorEmail, con.contribution_id);
                 }
                 else
                 {
@@ -424,7 +423,7 @@ namespace project_comp1640_be.Controllers
 
 
                     var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                    SendEmail(maketingCondinatorEmail);
+                    SendEmail(maketingCondinatorEmail, con.contribution_id);
                 }
 
                 return Ok(new { Message = "Update article succeeded" });
@@ -463,9 +462,9 @@ namespace project_comp1640_be.Controllers
                 return BadRequest(new { Message = "Data is null" });
             }
 
-            var userID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault(); 
+            var userID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
 
-            var contribution =  _context.Contributions
+            var contribution = _context.Contributions
                 .Where(c => c.contribution_user_id.Equals(userID)).ToList();
             if (contribution == null)
             {
@@ -497,7 +496,7 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> GetAllArticlesApprove()
         {
             var contributions = await _context.Contributions
-                .Where(c => c.IsPublic.Equals(IsPublic.Public))
+.Where(c => c.IsPublic.Equals(IsPublic.Public))
                 .ToListAsync();
             return Ok(contributions);
         }
@@ -613,6 +612,19 @@ namespace project_comp1640_be.Controllers
             return Ok();
         }
 
+        [HttpPut]
+        public async Task<IActionResult> updateContribution(Contributions contributions)
+        {
+            if (contributions == null)
+                return BadRequest(new { Message = "Contribution is null" });
+
+            _context.Contributions.Entry(contributions).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Update Contribution Succeed" });
+        }
+
+
 
         [HttpGet("GetContributionByFaculty")]
         public async Task<IActionResult> GetContributionByFaculty(string username)
@@ -631,7 +643,7 @@ namespace project_comp1640_be.Controllers
 
             List<ContributionDTO> lstContribution = new List<ContributionDTO>();
 
-            foreach(var i in lstUser)
+            foreach (var i in lstUser)
             {
                 var contribution = _context.Contributions
                     .Include(c => c.users)
@@ -650,10 +662,10 @@ namespace project_comp1640_be.Controllers
                         isView = c.IsView.ToString(),
                         isPublic = c.IsPublic.ToString(),
                         isSelected = c.IsSelected.ToString(),
-                        isEnabled = c.IsEnabled.ToString()  
+                        isEnabled = c.IsEnabled.ToString()
                     })
                     .ToList();
-                foreach(var a in contribution)
+                foreach (var a in contribution)
                 {
                     lstContribution.Add(a);
                 }

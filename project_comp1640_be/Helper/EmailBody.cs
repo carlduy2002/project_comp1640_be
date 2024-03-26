@@ -28,7 +28,7 @@
         }
 
 
-        public static string AddNewArticleEmailStringBody()
+        public static string AddNewArticleEmailStringBody(int id)
         {
             return $@"<html>
                         <head></head>
@@ -41,7 +41,7 @@
                                         <hr>
                                         <p>You received this email because an article in your faculty was posted by your faculty member.</p>
                                         <p>Please click the button below to view the new article.</p>
-                                        <a href=""#"" target="""" _blank
+                                        <a href=""http://localhost:4200/Detail-Articles/{id}"" target="""" _blank
                                             style=""background:#0d6efd;padding:10px;border:none;
                                                         color:white;border-radius:4px;display:block;margin:0 auto;width:50%;text-align:center;text-decoration:none"">View article</a><br>
                                         <p>Kind Regards,<br><br>
