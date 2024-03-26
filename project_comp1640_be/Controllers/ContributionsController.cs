@@ -167,7 +167,7 @@ namespace project_comp1640_be.Controllers
 
                 // add academic year
                 var date = DateTime.Now;
-                var academicyear = _context.Academic_Years.Where(a => a.academic_year_startClosureDate <= date).Select(a => a.academic_year_id).FirstOrDefault();
+                var academicyear = _context.Academic_Years.Where(academicYear => academicYear.academic_year_startClosureDate.Year == date.Year).Select(a => a.academic_year_id).FirstOrDefault();
                 con.contribution_academic_years_id = academicyear;
 
                 var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
@@ -218,7 +218,7 @@ namespace project_comp1640_be.Controllers
 
                 var thumbnailImg = httpRequest.Files["uploadImage"];
 
-                if(article == null && thumbnailImg == null)
+                if (article == null && thumbnailImg == null)
                 {
                     var con = _context.Contributions
                     .Where(c => c.contribution_id == int.Parse(contributionID))
@@ -245,7 +245,7 @@ namespace project_comp1640_be.Controllers
                     _context.Contributions.Entry(con).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
                 }
-                else if(article != null && thumbnailImg == null)
+                else if (article != null && thumbnailImg == null)
                 {
                     var con = _context.Contributions
                     .Where(c => c.contribution_id == int.Parse(contributionID))
@@ -294,7 +294,7 @@ namespace project_comp1640_be.Controllers
                     var maketingCondinatorEmail = maketingCondinatorUser.user_email;
                     SendEmail(maketingCondinatorEmail, con.contribution_id);
                 }
-                else if(article == null && thumbnailImg  != null)
+                else if (article == null && thumbnailImg != null)
                 {
                     var con = _context.Contributions
                     .Where(c => c.contribution_id == int.Parse(contributionID))
@@ -451,8 +451,10 @@ namespace project_comp1640_be.Controllers
             }
 
             var wordFile = LoadWordFile(contribution.contribution_content);
+            
+            contribution.contribution_content = await wordFile;
 
-            return  Ok(wordFile);
+            return Ok(contribution);
         }
 
         [HttpGet("Get-Article-Of-Student")]
@@ -463,9 +465,9 @@ namespace project_comp1640_be.Controllers
                 return BadRequest(new { Message = "Data is null" });
             }
 
-            var userID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault(); 
+            var userID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
 
-            var contribution =  _context.Contributions
+            var contribution = _context.Contributions
                 .Where(c => c.contribution_user_id.Equals(userID) && c.IsEnabled.Equals(IsEnabled.Enabled)).ToList();
             if (contribution == null)
             {
@@ -572,24 +574,65 @@ namespace project_comp1640_be.Controllers
             return Ok(lstPublicContribution);
         }
 
-
-
-        [HttpGet("Download-Articles")]
-        public async Task<IActionResult> DownloadFiles(string fileNames)
+        [HttpGet("Download-One-Article")]
+        public async Task<IActionResult> DownloadFile(int contribution_id)
         {
-            string[] arrFileNames;
+            var contribution = await _context.Contributions.FirstOrDefaultAsync(c => c.contribution_id == contribution_id);
 
-            arrFileNames = fileNames.Split(',');
-   
+            if (contribution == null) { return BadRequest(new { Message = "Contribution is not found" }); }
+
+            string fileName = contribution.contribution_content;
+
+            //string[] arrFileNames;
+
+            //arrFileNames = fileNames.Split(',');
+
             var zipFileName = "download.zip";
 
             MemoryStream streamFile = new MemoryStream();
 
             using (var zipArchive = new ZipArchive(streamFile, ZipArchiveMode.Create, true))
             {
-                foreach (var fileName in arrFileNames)
+                //foreach (var fileName in arrFileNames)
+                //{
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+                if (System.IO.File.Exists(filePath))
                 {
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+                    var entryName = Path.GetFileName(filePath);
+                    zipArchive.CreateEntryFromFile(filePath, entryName);
+                    //}
+                }
+            }
+
+            streamFile.Position = 0;
+
+            return File(streamFile, "application/zip", zipFileName);
+        }
+
+        [HttpGet("Download-Many-Article")]
+        public async Task<IActionResult> DownloadFiles(int faculty_id, int acdemic_year_id)
+        {
+            var contributions = await _context.Contributions
+                .Where(c => c.users.user_faculty_id == faculty_id && c.contribution_academic_years_id.Equals(acdemic_year_id))
+                .ToListAsync();
+
+            if (contributions == null) { return BadRequest(new { Message = "Contribution is not found" }); }
+
+            List<string> FileNamesList = new List<string>();
+            foreach (var contribution in contributions)
+            {
+                FileNamesList.Add(contribution.contribution_content.ToString());
+            }
+
+            var zipFileName = "download.zip";
+
+            MemoryStream streamFile = new MemoryStream();
+
+            using (var zipArchive = new ZipArchive(streamFile, ZipArchiveMode.Create, true))
+            {
+                foreach (var fileName in FileNamesList)
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName.ToString());
                     if (System.IO.File.Exists(filePath))
                     {
                         var entryName = Path.GetFileName(filePath);

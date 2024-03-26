@@ -70,5 +70,6 @@ namespace project_comp1640_be.Controllers
 
             return Ok(lstContributor);
         }
+
     }
 }
