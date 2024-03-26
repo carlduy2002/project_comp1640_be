@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace projectcomp1640be.Migrations
 {
     /// <inheritdoc />
-    public partial class updatedatabase : Migration
+    public partial class updateacademicyear : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,8 +18,8 @@ namespace projectcomp1640be.Migrations
                     academicyearid = table.Column<int>(name: "academic_year_id", type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     academicyeartitle = table.Column<string>(name: "academic_year_title", type: "varchar(255)", nullable: false),
-                    academicyearstartClosureDate = table.Column<DateTime>(name: "academic_year_startClosureDate", type: "datetime2", nullable: false),
-                    academicyearendClosureDate = table.Column<DateTime>(name: "academic_year_endClosureDate", type: "datetime2", nullable: false)
+                    academicyearClosureDate = table.Column<DateTime>(name: "academic_year_ClosureDate", type: "datetime2", nullable: false),
+                    academicyearFinalClosureDate = table.Column<DateTime>(name: "academic_year_FinalClosureDate", type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -61,29 +61,29 @@ namespace projectcomp1640be.Migrations
                     userusername = table.Column<string>(name: "user_username", type: "varchar(255)", nullable: false),
                     useremail = table.Column<string>(name: "user_email", type: "varchar(255)", nullable: false),
                     userpassword = table.Column<string>(name: "user_password", type: "varchar(255)", nullable: false),
-                    userconfirmpassword = table.Column<string>(name: "user_confirm_password", type: "nvarchar(max)", nullable: false),
-                    token = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    refeshtoken = table.Column<string>(name: "refesh_token", type: "nvarchar(max)", nullable: true),
-                    refeshtokenexprytime = table.Column<DateTime>(name: "refesh_token_exprytime", type: "datetime2", nullable: false),
-                    resetpasswordtoken = table.Column<string>(name: "reset_password_token", type: "nvarchar(max)", nullable: true),
-                    resetpasswordexprytime = table.Column<DateTime>(name: "reset_password_exprytime", type: "datetime2", nullable: false),
-                    userstatus = table.Column<int>(name: "user_status", type: "int", nullable: false),
-                    useravatar = table.Column<string>(name: "user_avatar", type: "nvarchar(max)", nullable: true),
-                    roleid = table.Column<int>(name: "role_id", type: "int", nullable: false),
-                    facultiesfacultyid = table.Column<int>(name: "facultiesfaculty_id", type: "int", nullable: false)
+                    userconfirmpassword = table.Column<string>(name: "user_confirm_password", type: "varchar(255)", nullable: true),
+                    token = table.Column<string>(type: "varchar(255)", nullable: true),
+                    refeshtoken = table.Column<string>(name: "refesh_token", type: "varchar(255)", nullable: true),
+                    refeshtokenexprytime = table.Column<DateTime>(name: "refesh_token_exprytime", type: "datetime2", nullable: true),
+                    resetpasswordtoken = table.Column<string>(name: "reset_password_token", type: "varchar(255)", nullable: true),
+                    resetpasswordexprytime = table.Column<DateTime>(name: "reset_password_exprytime", type: "datetime2", nullable: true),
+                    userstatus = table.Column<string>(name: "user_status", type: "varchar(10)", nullable: false),
+                    useravatar = table.Column<string>(name: "user_avatar", type: "varchar(255)", nullable: true),
+                    userroleid = table.Column<int>(name: "user_role_id", type: "int", nullable: false),
+                    userfacultyid = table.Column<int>(name: "user_faculty_id", type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.userid);
                     table.ForeignKey(
-                        name: "FK_Users_Faculties_facultiesfaculty_id",
-                        column: x => x.facultiesfacultyid,
+                        name: "FK_Users_Faculties_user_faculty_id",
+                        column: x => x.userfacultyid,
                         principalTable: "Faculties",
                         principalColumn: "faculty_id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Users_Roles_role_id",
-                        column: x => x.roleid,
+                        name: "FK_Users_Roles_user_role_id",
+                        column: x => x.userroleid,
                         principalTable: "Roles",
                         principalColumn: "role_id",
                         onDelete: ReferentialAction.Cascade);
@@ -102,6 +102,7 @@ namespace projectcomp1640be.Migrations
                     IsEnabled = table.Column<string>(type: "varchar(10)", nullable: false),
                     IsSelected = table.Column<string>(type: "varchar(10)", nullable: false),
                     IsView = table.Column<string>(type: "varchar(10)", nullable: false),
+                    IsPublic = table.Column<string>(type: "varchar(10)", nullable: false),
                     contributionuserid = table.Column<int>(name: "contribution_user_id", type: "int", nullable: false),
                     contributionacademicyearsid = table.Column<int>(name: "contribution_academic_years_id", type: "int", nullable: false)
                 },
@@ -169,14 +170,14 @@ namespace projectcomp1640be.Migrations
                 column: "comment_user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_facultiesfaculty_id",
+                name: "IX_Users_user_faculty_id",
                 table: "Users",
-                column: "facultiesfaculty_id");
+                column: "user_faculty_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_role_id",
+                name: "IX_Users_user_role_id",
                 table: "Users",
-                column: "role_id");
+                column: "user_role_id");
         }
 
         /// <inheritdoc />

@@ -195,7 +195,7 @@ namespace project_comp1640_be.Controllers
 
                 // add academic year
                 var date = DateTime.Now;
-                var academicyear = _context.Academic_Years.Where(a => a.academic_year_startClosureDate <= date).Select(a => a.academic_year_id).FirstOrDefault();
+                var academicyear = _context.Academic_Years.Where(a => a.academic_year_ClosureDate <= date).Select(a => a.academic_year_id).FirstOrDefault();
                 con.contribution_academic_years_id = academicyear;
 
                 var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
@@ -209,6 +209,7 @@ namespace project_comp1640_be.Controllers
                 con.IsEnabled = IsEnabled.Enabled;
                 con.IsSelected = IsSelected.Unselected;
                 con.IsView = IsView.Unview;
+                con.IsPublic = IsPublic.Private;
 
                 _context.Contributions.Add(con);
                 await _context.SaveChangesAsync();
@@ -465,7 +466,7 @@ namespace project_comp1640_be.Controllers
             var userID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault(); 
 
             var contribution =  _context.Contributions
-                .Where(c => c.contribution_user_id.Equals(userID) && c.IsEnabled.Equals(IsEnabled.Enabled)).ToList();
+                .Where(c => c.contribution_user_id.Equals(userID)).ToList();
             if (contribution == null)
             {
                 return NotFound(new { Message = "Couldn't find" });
@@ -480,6 +481,24 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> GetAllArticles()
         {
             var contributions = await _context.Contributions.ToListAsync();
+            return Ok(contributions);
+        }
+
+        [HttpGet("Get-All-Articles-Selected")]
+        public async Task<IActionResult> GetAllArticlesSelected()
+        {
+            var contributions = await _context.Contributions
+                .Where(c => c.IsSelected.Equals(IsSelected.Selected))
+                .ToListAsync();
+            return Ok(contributions);
+        }
+
+        [HttpGet("Get-All-Articles-Public")]
+        public async Task<IActionResult> GetAllArticlesApprove()
+        {
+            var contributions = await _context.Contributions
+                .Where(c => c.IsPublic.Equals(IsPublic.Public))
+                .ToListAsync();
             return Ok(contributions);
         }
 
@@ -528,6 +547,72 @@ namespace project_comp1640_be.Controllers
             return Ok();
         }
 
+        [HttpPut("Approve")]
+        public async Task<IActionResult> Approve(int contribution_id)
+        {
+            var contribution = _context.Contributions.Where(c => c.contribution_id == contribution_id).FirstOrDefault();
+
+            if (contribution == null)
+                return BadRequest(new { Message = "Cannot change status approve" });
+
+            contribution.IsSelected = IsSelected.Selected;
+
+            _context.Entry(contribution).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+
+        [HttpPut("Reject")]
+        public async Task<IActionResult> Reject(int contribution_id)
+        {
+            var contribution = _context.Contributions.Where(c => c.contribution_id == contribution_id).FirstOrDefault();
+
+            if (contribution == null)
+                return BadRequest(new { Message = "Cannot change status approve" });
+
+            contribution.IsEnabled = IsEnabled.Unenabled;
+
+            _context.Entry(contribution).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPut("Public")]
+        public async Task<IActionResult> Public(int contribution_id)
+        {
+            var contribution = _context.Contributions.Where(c => c.contribution_id == contribution_id).FirstOrDefault();
+
+            if (contribution == null)
+                return BadRequest(new { Message = "Cannot change status approve" });
+
+            contribution.IsPublic = IsPublic.Public;
+
+            _context.Entry(contribution).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPut("Private")]
+        public async Task<IActionResult> Private(int contribution_id)
+        {
+            var contribution = _context.Contributions.Where(c => c.contribution_id == contribution_id).FirstOrDefault();
+
+            if (contribution == null)
+                return BadRequest(new { Message = "Cannot change status approve" });
+
+            contribution.IsPublic = IsPublic.Private;
+            contribution.IsSelected = IsSelected.Unselected;
+
+            _context.Entry(contribution).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
         [HttpPut]
         public async Task<IActionResult> updateContribution(Contributions contributions)
         {
@@ -540,6 +625,8 @@ namespace project_comp1640_be.Controllers
             return Ok(new { Message = "Update Contribution Succeed" });
         }
 
+
+
         [HttpGet("GetContributionByFaculty")]
         public async Task<IActionResult> GetContributionByFaculty(string username)
         {
@@ -550,7 +637,8 @@ namespace project_comp1640_be.Controllers
 
 
             var lstUser = _context.Users
-                .Where(l => l.user_faculty_id.Equals(user) && l.user_role_id.Equals(4))
+                .Include(l => l.role)
+                .Where(l => l.user_faculty_id.Equals(user) && l.role.role_name.Equals("Student"))
                 .Select(l => l.user_id)
                 .ToList();
 
@@ -561,7 +649,8 @@ namespace project_comp1640_be.Controllers
                 var contribution = _context.Contributions
                     .Include(c => c.users)
                     .Include(c => c.academic_years)
-                    .Where(c => c.contribution_user_id.Equals(i) && c.IsEnabled.Equals(IsEnabled.Enabled))
+                    .Where(c => c.contribution_user_id.Equals(i) && c.IsEnabled.Equals(IsEnabled.Enabled)
+                            && c.IsPublic.Equals(IsPublic.Private))
                     .Select(c => new ContributionDTO
                     {
                         contribution_id = c.contribution_id,
@@ -570,8 +659,11 @@ namespace project_comp1640_be.Controllers
                         contribution_image = c.contribution_image,
                         contribution_title = c.contribution_title,
                         contribution_submition_date = c.contribution_submition_date,
-                        final_clouser_date = c.academic_years.academic_year_endClosureDate,
+                        final_clouser_date = c.academic_years.academic_year_FinalClosureDate,
                         isView = c.IsView.ToString(),
+                        isPublic = c.IsPublic.ToString(),
+                        isSelected = c.IsSelected.ToString(),
+                        isEnabled = c.IsEnabled.ToString()  
                     })
                     .ToList();
                 foreach(var a in contribution)
