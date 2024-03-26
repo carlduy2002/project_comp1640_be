@@ -117,7 +117,15 @@ namespace project_comp1640_be.Controllers
                    fileType.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
                    fileType.Equals(".png", StringComparison.OrdinalIgnoreCase);
         }
+        private void DeleteFile(string fileName, string directory)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), directory, fileName);
 
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+        }
         // send email function
         private void SendEmail(string email, int contributionId)
         {
@@ -128,39 +136,6 @@ namespace project_comp1640_be.Controllers
             var emailBody = EmailBody.AddNewArticleEmailStringBody(contributionId);
             var emailModel = new EmailModel(email, "New ariticle posted!!", emailBody);
             _emailService.SendEmail(emailModel);
-        }
-
-
-        private IActionResult LoadWordFile(string fileName)
-        {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
-
-            //if (System.IO.File.Exists(filePath))
-            //{
-            //    Document doc = new Document(filePath);
-
-            //    // doc.RemoveMacros();
-
-            //    MemoryStream stream = new MemoryStream();
-
-            //    HtmlSaveOptions options = new HtmlSaveOptions();
-            //    options.ExportImagesAsBase64 = true;
-
-            //    doc.Save(stream, options);
-
-            //    stream.Position = 0;
-
-            //    string htmlContent = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
-
-            //    htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
-
-            //    return htmlContent;
-            //}
-            //return "File not found";
-
-            byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
-
-            return File(fileBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
         }
 
 
@@ -195,7 +170,7 @@ namespace project_comp1640_be.Controllers
 
                 // add academic year
                 var date = DateTime.Now;
-                var academicyear = _context.Academic_Years.Where(a => a.academic_year_ClosureDate <= date).Select(a => a.academic_year_id).FirstOrDefault();
+                var academicyear = _context.Academic_Years.Where(academicYear => academicYear.academic_year_ClosureDate.Year == date.Year).Select(a => a.academic_year_id).FirstOrDefault();
                 con.contribution_academic_years_id = academicyear;
 
                 var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
@@ -203,8 +178,6 @@ namespace project_comp1640_be.Controllers
                 con.contribution_user_id = userId;
 
                 con.contribution_title = title;
-                // con.contribution_content = fileName;
-                // con.contribution_image = fileNameImg;
                 con.contribution_submition_date = date;
                 con.IsEnabled = IsEnabled.Enabled;
                 con.IsSelected = IsSelected.Unselected;
@@ -434,9 +407,40 @@ namespace project_comp1640_be.Controllers
             }
         }
 
+        //load file word to html
+        private async Task<String> LoadWordFile(string fileName)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                Document doc = new Document(filePath);
+
+                // doc.RemoveMacros();
+
+                MemoryStream stream = new MemoryStream();
+
+                HtmlSaveOptions options = new HtmlSaveOptions();
+                options.ExportImagesAsBase64 = true;
+
+                doc.Save(stream, options);
+
+                stream.Position = 0;
+
+                string htmlContent = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
+
+
+                htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
+
+                htmlContent = htmlContent.Replace("This document was truncated here because it was created in the Evaluation Mode.", "");
+
+                return htmlContent;
+            }
+            return "File not found";
+        }
 
         [HttpGet("Get-Article")]
-        public async Task<IActionResult> GetArticleById(int contribution_id)
+        public async Task<IActionResult> GetArticleById(int contribution_id)    
         {
             if (contribution_id == null)
             {
@@ -449,7 +453,9 @@ namespace project_comp1640_be.Controllers
                 return NotFound(new { Message = "Couldn't find" });
             }
 
-            //var wordFile = LoadWordFile(contribution.contribution_content);
+            var wordFile = LoadWordFile(contribution.contribution_content);
+            
+            contribution.contribution_content = await wordFile;
 
             return Ok(contribution);
         }
@@ -496,7 +502,7 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> GetAllArticlesApprove()
         {
             var contributions = await _context.Contributions
-.Where(c => c.IsPublic.Equals(IsPublic.Public))
+            .Where(c => c.IsPublic.Equals(IsPublic.Public))
                 .ToListAsync();
             return Ok(contributions);
         }
@@ -522,9 +528,10 @@ namespace project_comp1640_be.Controllers
 
             if (contribution == null) { return BadRequest(new { Message = "Contribution is not found" }); }
 
-            contribution.IsEnabled = IsEnabled.Unenabled;
+            DeleteFile(contribution.contribution_content, "Articles");
+            DeleteFile(contribution.contribution_image, "Imgs");
 
-            _context.Entry(contribution).State = EntityState.Modified;
+            _context.Contributions.Remove(contribution);
             await _context.SaveChangesAsync();
 
             return Ok(new { Message = "Contribution is deleted" });
@@ -624,7 +631,77 @@ namespace project_comp1640_be.Controllers
             return Ok(new { Message = "Update Contribution Succeed" });
         }
 
+        [HttpGet("Download-One-Article")]
+        public async Task<IActionResult> DownloadFile(int contribution_id)
+        {
+            var contribution = await _context.Contributions.FirstOrDefaultAsync(c => c.contribution_id == contribution_id);
 
+            if (contribution == null) { return BadRequest(new { Message = "Contribution is not found" }); }
+
+            string fileName = contribution.contribution_content;
+
+            //string[] arrFileNames;
+
+            //arrFileNames = fileNames.Split(',');
+
+            var zipFileName = "download.zip";
+
+            MemoryStream streamFile = new MemoryStream();
+
+            using (var zipArchive = new ZipArchive(streamFile, ZipArchiveMode.Create, true))
+            {
+                //foreach (var fileName in arrFileNames)
+                //{
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
+                if (System.IO.File.Exists(filePath))
+                {
+                    var entryName = Path.GetFileName(filePath);
+                    zipArchive.CreateEntryFromFile(filePath, entryName);
+                    //}
+                }
+            }
+
+            streamFile.Position = 0;
+
+            return File(streamFile, "application/zip", zipFileName);
+        }
+
+        [HttpGet("Download-Many-Article")]
+        public async Task<IActionResult> DownloadFiles(int faculty_id, int acdemic_year_id)
+        {
+            var contributions = await _context.Contributions
+                .Where(c => c.users.user_faculty_id == faculty_id && c.contribution_academic_years_id.Equals(acdemic_year_id))
+                .ToListAsync();
+
+            if (contributions == null) { return BadRequest(new { Message = "Contribution is not found" }); }
+
+            List<string> FileNamesList = new List<string>();
+            foreach (var contribution in contributions)
+            {
+                FileNamesList.Add(contribution.contribution_content.ToString());
+            }
+
+            var zipFileName = "download.zip";
+
+            MemoryStream streamFile = new MemoryStream();
+
+            using (var zipArchive = new ZipArchive(streamFile, ZipArchiveMode.Create, true))
+            {
+                foreach (var fileName in FileNamesList)
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName.ToString());
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        var entryName = Path.GetFileName(filePath);
+                        zipArchive.CreateEntryFromFile(filePath, entryName);
+                    }
+                }
+            }
+
+            streamFile.Position = 0;
+
+            return File(streamFile, "application/zip", zipFileName);
+        }   
 
         [HttpGet("GetContributionByFaculty")]
         public async Task<IActionResult> GetContributionByFaculty(string username)
@@ -633,7 +710,6 @@ namespace project_comp1640_be.Controllers
                 .Where(u => u.user_username.Equals(username))
                 .Select(u => u.user_faculty_id)
                 .FirstOrDefault();
-
 
             var lstUser = _context.Users
                 .Include(l => l.role)

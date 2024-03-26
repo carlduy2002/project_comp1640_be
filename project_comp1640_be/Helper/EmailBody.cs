@@ -12,13 +12,13 @@
                         <div>
                           <h1>Reset Your Password</h1>
                           <hr>
-                          <p>You're receiving this e-mail because you requested a password reset for your HD - STORE WEB account.</p>
+                          <p>You're receiving this e-mail because you requested a password reset for your Annual University Magazine account.</p>
                           <p>Please tap the button below to choose a new password.</p>
                           <a href=""http://localhost:4200/Reset-Password?email={email}&code={emailToken}"" target="""" _blank"" style=""background:#0d6efd;padding:10px;border:none;
                             color:white;border-radius:4px;display:block;margin:0 auto;width:50%;text-align:center;text-decoration:none"">Reset Password</a><br>
             
                             <p>Kind Regards,<br><br>
-                            HD - STORE WEB</P>
+                            Annual University Magazine</P>
                         </div>
                       </div>
                     </div>
@@ -45,7 +45,7 @@
                                             style=""background:#0d6efd;padding:10px;border:none;
                                                         color:white;border-radius:4px;display:block;margin:0 auto;width:50%;text-align:center;text-decoration:none"">View article</a><br>
                                         <p>Kind Regards,<br><br>
-                                            Article Contribution System</P>
+                                            Annual University Magazine</P>
                                     </div>
                                 </div>
                             </div>
