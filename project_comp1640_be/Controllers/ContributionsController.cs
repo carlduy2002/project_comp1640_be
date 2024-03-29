@@ -73,8 +73,6 @@ namespace project_comp1640_be.Controllers
             return Ok(article);
         }
 
-
-
         private async Task<string> SaveFileAsync(IFormFile file, string directory)
         {
             if (file == null || file.Length == 0)
@@ -456,12 +454,35 @@ namespace project_comp1640_be.Controllers
             var wordFile = LoadWordFile(contribution.contribution_content);
             
             contribution.contribution_content = await wordFile;
-
-            return Ok(contribution);
+            return Ok( new { result = contribution });
         }
 
         [HttpGet("Get-Article-Of-Student")]
-        public async Task<IActionResult> GetArticleByUsername(string username)
+        public async Task<IActionResult> GetArticleByUsername(string username, int contribution_id)
+        {
+            if (username == null)
+            {
+                return BadRequest(new { Message = "Data is null" });
+            }
+
+            //var userID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
+
+            var contribution = _context.Contributions.Where(c => c.users.user_username == username && c.contribution_id == contribution_id).FirstOrDefault();
+
+            if (contribution == null)
+            {
+                return NotFound(new { Message = "Couldn't find" });
+            }
+
+            var wordFile = LoadWordFile(contribution.contribution_content);
+
+            contribution.contribution_content = await wordFile;
+
+            return Ok(new { result = contribution });
+        }
+
+        [HttpGet("Get-All-Article-Of-Student")]
+        public async Task<IActionResult> GetAllArticleByUsername(string username, int contribution_id)
         {
             if (username == null)
             {
@@ -470,14 +491,12 @@ namespace project_comp1640_be.Controllers
 
             var userID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
 
-            var contribution = _context.Contributions
-                .Where(c => c.contribution_user_id.Equals(userID)).ToList();
+            var contribution = _context.Contributions.Where(c => c.contribution_user_id == userID).ToList();
+
             if (contribution == null)
             {
                 return NotFound(new { Message = "Couldn't find" });
             }
-
-            //var wordFile = LoadWordFile(contribution.contribution_content);
 
             return Ok(contribution);
         }

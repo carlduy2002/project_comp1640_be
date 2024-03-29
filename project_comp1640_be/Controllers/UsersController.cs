@@ -353,9 +353,109 @@ namespace project_comp1640_be.Controllers
         [HttpGet("get-user-id")]
         public async Task<IActionResult> getUserID(string user_username)
         {
-            var userID = await _context.Users.Where(u => u.user_username == user_username).Select(u=>u.user_id).FirstOrDefaultAsync();
+            var userID = await _context.Users.Where(u => u.user_username.Equals(user_username)).Select(u => u.user_id).FirstOrDefaultAsync();
 
             return Ok(userID);
         }
+
+        [HttpGet("Get-User-By-UserName")]
+        public async Task<IActionResult> getUserByUserName(string user_username)
+        {
+            var user = await _context.Users.Where(u => u.user_username == user_username).Select(u => new {
+                u.user_id, u.user_username, u.user_email, u.user_avatar, u.faculties.faculty_name, u.role.role_name
+            }).FirstOrDefaultAsync();
+
+            if(user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(user);
+        }
+
+        private bool IsImageFile(string fileName)
+        {
+            string fileType = Path.GetExtension(fileName);
+            return fileType.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                   fileType.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                   fileType.Equals(".png", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private async Task<string> SaveFileAsync(IFormFile file, string directory)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return null;
+            }
+
+            var fileName = Path.GetFileName(file.FileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), directory, fileName);
+
+            // check file exiting
+            int i = 0;
+            while (System.IO.File.Exists(filePath))
+            {
+                i++;
+                fileName = "(" + i + ")" + fileName;
+                filePath = Path.Combine(Directory.GetCurrentDirectory(), directory, fileName);
+            }
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return fileName;
+        }
+
+        [HttpPost("Update-User-Profile")]
+        public async Task<IActionResult> UpdateUserProfile()
+        {
+            var httpRequest = Request.Form;
+            var userId = int.Parse(httpRequest["userId"]);
+            var userName = httpRequest["userName"];
+            var userEmail = httpRequest["userEmail"];
+            var userAvatar = httpRequest.Files["uploadImage"];
+
+            Users user = _context.Users.Where(u => u.user_id == userId).FirstOrDefault();
+
+            if (user == null)
+            {
+                return BadRequest(new { Message = "User not found" });
+            }
+
+            if (userAvatar != null)
+            {
+                if (IsImageFile(userAvatar.FileName))
+                {
+                    SaveFileAsync(userAvatar, "Imgs");
+                    user.user_avatar = userAvatar.FileName;
+                }
+            }
+
+            user.user_username = userName;
+            user.user_email = userEmail;
+
+            _context.Entry(user).State = EntityState.Modified;
+            _context.SaveChanges();
+
+            user = _context.Users.Where(u => u.user_id == userId).FirstOrDefault();
+
+            user.token = CreateJwt(user);
+            var newAccessToken = user.token;
+            var newRefreshToken = CreateRefreshToken();
+            user.refesh_token = newRefreshToken;
+            user.refesh_token_exprytime = DateTime.Now.AddDays(1);
+            _context.Entry(user).State = EntityState.Modified;
+            _context.SaveChanges();
+            return Ok(new TokenApiDto()
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                Message = "Succeed"
+            });
+
+           
+            }
     }
 }

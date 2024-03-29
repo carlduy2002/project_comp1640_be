@@ -49,7 +49,7 @@ namespace project_comp1640_be.Controllers
                 .Select(u => u.user_id)
                 .FirstOrDefault();
 
-            if(user_id == null)
+            if (user_id == null)
                 return BadRequest();
 
             Marketing_Comments marketing_Comments = new Marketing_Comments();
@@ -62,7 +62,30 @@ namespace project_comp1640_be.Controllers
             _context.Marketing_Comments.Add(marketing_Comments);
             await _context.SaveChangesAsync();
 
-            return Ok(new {Messasge = "Add Comment Succeed"});
+            return Ok(new { Messasge = "Add Comment Succeed" });
+        }
+
+        [HttpPut("Update-Comment")]
+        public async Task<IActionResult> UpdateComment(int id, Marketing_Comments comments)
+        {
+            var exitComment = await _context.Marketing_Comments.FindAsync(id);
+            if (exitComment != null)
+            {
+                return NotFound(new { Message = "Comment is not found" });
+            }
+            _context.Entry(exitComment).State = EntityState.Detached;
+
+            if (comments == null)
+            {
+                return BadRequest(new { Message = "Comment is null" });
+            }
+
+            comments.comment_id = id;
+
+            _context.Entry(comments).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Update comment successed" });
         }
 
         [HttpDelete]
