@@ -85,6 +85,7 @@ namespace project_comp1640_be.Controllers
             user.user_password = PasswordHasher.HashPassword(user.user_password);
             user.user_confirm_password = PasswordHasher.HashPassword(user.user_confirm_password);
             user.user_status = user_status.Unlock;
+            user.user_avatar = "avt.png";
 
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
@@ -433,6 +434,24 @@ namespace project_comp1640_be.Controllers
                 }
             }
 
+            if(user.user_email != userEmail)
+            {
+                if (await CheckEmailExist(userEmail))
+                    return BadRequest(new { Message = "Email already exist!" });
+
+                var email = CheckEmailValid(userEmail);
+                if (!string.IsNullOrEmpty(email))
+                    return BadRequest(new { Message = email.ToString() });
+            }
+
+            if (user.user_username != userName)
+            {
+                if (await CheckUsernameExist(userName))
+                {
+                    return BadRequest(new { Message = "Username already exist!" });
+                }
+            }
+
             user.user_username = userName;
             user.user_email = userEmail;
 
@@ -454,8 +473,6 @@ namespace project_comp1640_be.Controllers
                 RefreshToken = newRefreshToken,
                 Message = "Succeed"
             });
-
-           
-            }
+        }
     }
 }

@@ -189,7 +189,7 @@ namespace project_comp1640_be.Controllers
                 //var userFaculty = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
 
                 // fine faculty manager and send email
-                var maketingCondinatorUser = _context.Users.Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
+                var maketingCondinatorUser = _context.Users.Where(u => u.user_faculty_id == user.user_faculty_id && u.role.role_name.Equals("Coordinator")).FirstOrDefault();   
                 var maketingCondinatorEmail = maketingCondinatorUser.user_email;
                 SendEmail(maketingCondinatorEmail, con.contribution_id);
 
@@ -428,9 +428,9 @@ namespace project_comp1640_be.Controllers
                 string htmlContent = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
 
 
-                htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
+                //htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
 
-                htmlContent = htmlContent.Replace("This document was truncated here because it was created in the Evaluation Mode.", "");
+                //htmlContent = htmlContent.Replace("This document was truncated here because it was created in the Evaluation Mode.", "");
 
                 return htmlContent;
             }
@@ -547,8 +547,13 @@ namespace project_comp1640_be.Controllers
 
             if (contribution == null) { return BadRequest(new { Message = "Contribution is not found" }); }
 
+            var comments = await _context.Marketing_Comments.Where(m => m.comment_contribution_id == contribution_id).ToListAsync();
+
             DeleteFile(contribution.contribution_content, "Articles");
             DeleteFile(contribution.contribution_image, "Imgs");
+
+            _context.Marketing_Comments.RemoveRange(comments);
+            await _context.SaveChangesAsync();
 
             _context.Contributions.Remove(contribution);
             await _context.SaveChangesAsync();
@@ -653,15 +658,13 @@ namespace project_comp1640_be.Controllers
         [HttpGet("Download-One-Article")]
         public async Task<IActionResult> DownloadFile(int contribution_id)
         {
-            var contribution = await _context.Contributions.FirstOrDefaultAsync(c => c.contribution_id == contribution_id);
+            var contribution = await _context.Contributions.FirstOrDefaultAsync(c => c.contribution_id == contribution_id && c.IsSelected.Equals(IsSelected.Selected));
 
             if (contribution == null) { return BadRequest(new { Message = "Contribution is not found" }); }
 
             string fileName = contribution.contribution_content;
 
-            //string[] arrFileNames;
-
-            //arrFileNames = fileNames.Split(',');
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
 
             var zipFileName = "download.zip";
 
@@ -669,14 +672,14 @@ namespace project_comp1640_be.Controllers
 
             using (var zipArchive = new ZipArchive(streamFile, ZipArchiveMode.Create, true))
             {
-                //foreach (var fileName in arrFileNames)
-                //{
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
                 if (System.IO.File.Exists(filePath))
-                {
+                {   
                     var entryName = Path.GetFileName(filePath);
                     zipArchive.CreateEntryFromFile(filePath, entryName);
-                    //}
+                }
+                else
+                {
+                    return BadRequest(new { Message = "File does not exist" });
                 }
             }
 
@@ -689,9 +692,9 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> DownloadFiles(int faculty_id, int acdemic_year_id)
         {
             var contributions = await _context.Contributions
-                .Where(c => c.users.user_faculty_id == faculty_id && c.contribution_academic_years_id.Equals(acdemic_year_id))
+                .Where(c => c.users.user_faculty_id == faculty_id && c.contribution_academic_years_id.Equals(acdemic_year_id) && c.IsSelected.Equals(IsSelected.Selected))
                 .ToListAsync();
-
+                
             if (contributions == null) { return BadRequest(new { Message = "Contribution is not found" }); }
 
             List<string> FileNamesList = new List<string>();
