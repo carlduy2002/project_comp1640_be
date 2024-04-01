@@ -17,6 +17,7 @@ namespace project_comp1640_be.Controllers
         [HttpGet]
         public async Task<IActionResult> getAllCommentsByID(int comment_contribution_id)
         {
+            // viết tên hàm k tường minh gì hết v
             var lstComment = _context.Marketing_Comments
                 .Include(c => c.users)
                 .Include(c => c.contributions)
@@ -49,8 +50,7 @@ namespace project_comp1640_be.Controllers
                 .Select(u => u.user_id)
                 .FirstOrDefault();
 
-            if (user_id == null)
-                return BadRequest();
+            if (user_id == null) return BadRequest();
 
             Marketing_Comments marketing_Comments = new Marketing_Comments();
 
@@ -65,24 +65,24 @@ namespace project_comp1640_be.Controllers
             return Ok(new { Messasge = "Add Comment Succeed" });
         }
 
-        [HttpPut("Update-Comment")]
-        public async Task<IActionResult> UpdateComment(int id, Marketing_Comments comments)
+        [HttpPost("Update-Comment")]
+        public async Task<IActionResult> UpdateComment(int comment_id, string comments_content)
         {
-            var exitComment = await _context.Marketing_Comments.FindAsync(id);
-            if (exitComment != null)
+            if(comments_content.Trim().Equals(""))
+            {
+                return BadRequest(new {Message = "Comment content is empty!!!"});
+            }
+
+            var exitComment = await _context.Marketing_Comments.FindAsync(comment_id);
+            if (exitComment == null)
             {
                 return NotFound(new { Message = "Comment is not found" });
             }
-            _context.Entry(exitComment).State = EntityState.Detached;
 
-            if (comments == null)
-            {
-                return BadRequest(new { Message = "Comment is null" });
-            }
+            exitComment.comment_content = comments_content;
+            exitComment.comment_date = DateTime.Now;
 
-            comments.comment_id = id;
-
-            _context.Entry(comments).State = EntityState.Modified;
+            _context.Entry(exitComment).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
             return Ok(new { Message = "Update comment successed" });
