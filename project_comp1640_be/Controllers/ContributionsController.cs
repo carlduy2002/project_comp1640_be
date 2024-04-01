@@ -135,29 +135,6 @@ namespace project_comp1640_be.Controllers
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Articles", fileName);
 
-            //if (System.IO.File.Exists(filePath))
-            //{
-            //    Document doc = new Document(filePath);
-
-            //    // doc.RemoveMacros();
-
-            //    MemoryStream stream = new MemoryStream();
-
-            //    HtmlSaveOptions options = new HtmlSaveOptions();
-            //    options.ExportImagesAsBase64 = true;
-
-            //    doc.Save(stream, options);
-
-            //    stream.Position = 0;
-
-            //    string htmlContent = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
-
-            //    htmlContent = Regex.Replace(htmlContent, @"(Evaluation Only\. Created with Aspose\.Words\. Copyright \d{4}-\d{4} Aspose Pty Ltd\.|Created with an evaluation copy of Aspose\.Words\. To discover the full versions of our APIs please visit: https://products\.aspose\.com/words/)", string.Empty);
-
-            //    return htmlContent;
-            //}
-            //return "File not found";
-
             byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
 
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);

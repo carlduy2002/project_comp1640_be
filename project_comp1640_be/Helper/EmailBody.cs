@@ -18,7 +18,7 @@
                             color:white;border-radius:4px;display:block;margin:0 auto;width:50%;text-align:center;text-decoration:none"">Reset Password</a><br>
             
                             <p>Kind Regards,<br><br>
-                            HD - STORE WEB</P>
+                            Annual University Magazine </P>
                         </div>
                       </div>
                     </div>
@@ -45,7 +45,7 @@
                                             style=""background:#0d6efd;padding:10px;border:none;
                                                         color:white;border-radius:4px;display:block;margin:0 auto;width:50%;text-align:center;text-decoration:none"">View article</a><br>
                                         <p>Kind Regards,<br><br>
-                                            Article Contribution System</P>
+                                            Annual University Magazine</P>
                                     </div>
                                 </div>
                             </div>
