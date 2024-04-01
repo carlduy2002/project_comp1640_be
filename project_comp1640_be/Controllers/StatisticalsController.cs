@@ -281,14 +281,16 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> workDuration()
         {
             var dataStatistic = await _context.Users
-                .Select( u => new {
+                .Select(u => new {
                     user_id = u.user_id,
                     user_username = u.user_username,
                     user_email = u.user_email,
                     user_role = u.role.role_name,
                     total_work_duration = u.total_work_duration,
-                    //average_work_duration = u.last_login == DateTime.Now ? u.total_work_duration 
-                    //                                        : (int)u.total_work_duration/((DateTime.))
+                    average_work_duration = u.Page_Views.Where(p => p.page_view_user_id == u.user_id)
+                                                .Select(p => p.time_stamp).FirstOrDefault() == DateTime.Now
+                                                ? u.total_work_duration : (int)(u.total_work_duration / ((int)(DateTime.Now - u.Page_Views.Where(p => p.page_view_user_id == u.user_id)
+                                                .Select(p => p.time_stamp).FirstOrDefault()).TotalSeconds))
                 } ).ToListAsync();
 
             return Ok(dataStatistic);
