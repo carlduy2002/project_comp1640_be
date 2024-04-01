@@ -289,7 +289,7 @@ namespace project_comp1640_be.Controllers
 
                     // fine faculty manager and send email
                     var maketingCondinatorUser = _context.Users
-                        .Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
+                        .Where(u => u.user_faculty_id == user.user_faculty_id && u.role.role_name.Equals("Coordinator")).FirstOrDefault();
 
 
                     var maketingCondinatorEmail = maketingCondinatorUser.user_email;
