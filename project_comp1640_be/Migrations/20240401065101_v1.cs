@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace projectcomp1640be.Migrations
 {
     /// <inheritdoc />
-    public partial class comp1640migration : Migration
+    public partial class v1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -67,6 +67,8 @@ namespace projectcomp1640be.Migrations
                     refeshtokenexprytime = table.Column<DateTime>(name: "refesh_token_exprytime", type: "datetime2", nullable: true),
                     resetpasswordtoken = table.Column<string>(name: "reset_password_token", type: "varchar(255)", nullable: true),
                     resetpasswordexprytime = table.Column<DateTime>(name: "reset_password_exprytime", type: "datetime2", nullable: true),
+                    lastlogin = table.Column<DateTime>(name: "last_login", type: "datetime2", nullable: true),
+                    totalworkduration = table.Column<int>(name: "total_work_duration", type: "int", nullable: true),
                     userstatus = table.Column<string>(name: "user_status", type: "varchar(10)", nullable: false),
                     useravatar = table.Column<string>(name: "user_avatar", type: "varchar(255)", nullable: true),
                     userroleid = table.Column<int>(name: "user_role_id", type: "int", nullable: false),
@@ -124,6 +126,29 @@ namespace projectcomp1640be.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Page_Views",
+                columns: table => new
+                {
+                    pageviewid = table.Column<int>(name: "page_view_id", type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    pageviewname = table.Column<string>(name: "page_view_name", type: "varchar(100)", nullable: false),
+                    browsername = table.Column<string>(name: "browser_name", type: "varchar(100)", nullable: false),
+                    timestamp = table.Column<DateTime>(name: "time_stamp", type: "datetime2", nullable: false),
+                    totaltimeaccess = table.Column<int>(name: "total_time_access", type: "int", nullable: false),
+                    pageviewuserid = table.Column<int>(name: "page_view_user_id", type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Page_Views", x => x.pageviewid);
+                    table.ForeignKey(
+                        name: "FK_Page_Views_Users_page_view_user_id",
+                        column: x => x.pageviewuserid,
+                        principalTable: "Users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Marketing_Comments",
                 columns: table => new
                 {
@@ -170,6 +195,11 @@ namespace projectcomp1640be.Migrations
                 column: "comment_user_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Page_Views_page_view_user_id",
+                table: "Page_Views",
+                column: "page_view_user_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_user_faculty_id",
                 table: "Users",
                 column: "user_faculty_id");
@@ -185,6 +215,9 @@ namespace projectcomp1640be.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Marketing_Comments");
+
+            migrationBuilder.DropTable(
+                name: "Page_Views");
 
             migrationBuilder.DropTable(
                 name: "Contributions");

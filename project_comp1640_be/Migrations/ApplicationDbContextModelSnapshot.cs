@@ -146,6 +146,38 @@ namespace projectcomp1640be.Migrations
                     b.ToTable("Marketing_Comments", (string)null);
                 });
 
+            modelBuilder.Entity("project_comp1640_be.Model.Page_Views", b =>
+                {
+                    b.Property<int>("page_view_id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("page_view_id"));
+
+                    b.Property<string>("browser_name")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("page_view_name")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("page_view_user_id")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("time_stamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("total_time_access")
+                        .HasColumnType("int");
+
+                    b.HasKey("page_view_id");
+
+                    b.HasIndex("page_view_user_id");
+
+                    b.ToTable("Page_Views");
+                });
+
             modelBuilder.Entity("project_comp1640_be.Model.Roles", b =>
                 {
                     b.Property<int>("role_id")
@@ -171,6 +203,9 @@ namespace projectcomp1640be.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("user_id"));
 
+                    b.Property<DateTime?>("last_login")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("refesh_token")
                         .HasColumnType("varchar(255)");
 
@@ -185,6 +220,9 @@ namespace projectcomp1640be.Migrations
 
                     b.Property<string>("token")
                         .HasColumnType("varchar(255)");
+
+                    b.Property<int?>("total_work_duration")
+                        .HasColumnType("int");
 
                     b.Property<string>("user_avatar")
                         .HasColumnType("varchar(255)");
@@ -261,6 +299,17 @@ namespace projectcomp1640be.Migrations
                     b.Navigation("users");
                 });
 
+            modelBuilder.Entity("project_comp1640_be.Model.Page_Views", b =>
+                {
+                    b.HasOne("project_comp1640_be.Model.Users", "users")
+                        .WithMany("Page_Views")
+                        .HasForeignKey("page_view_user_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("users");
+                });
+
             modelBuilder.Entity("project_comp1640_be.Model.Users", b =>
                 {
                     b.HasOne("project_comp1640_be.Model.Faculties", "faculties")
@@ -305,6 +354,8 @@ namespace projectcomp1640be.Migrations
                     b.Navigation("Contributions");
 
                     b.Navigation("Marketing_Comments");
+
+                    b.Navigation("Page_Views");
                 });
 #pragma warning restore 612, 618
         }
