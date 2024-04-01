@@ -12,7 +12,7 @@ using project_comp1640_be.Data;
 namespace projectcomp1640be.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240401065101_v1")]
+    [Migration("20240401082923_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -178,7 +178,7 @@ namespace projectcomp1640be.Migrations
 
                     b.HasIndex("page_view_user_id");
 
-                    b.ToTable("Page_Views");
+                    b.ToTable("Page_Views", (string)null);
                 });
 
             modelBuilder.Entity("project_comp1640_be.Model.Roles", b =>

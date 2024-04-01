@@ -175,7 +175,7 @@ namespace projectcomp1640be.Migrations
 
                     b.HasIndex("page_view_user_id");
 
-                    b.ToTable("Page_Views");
+                    b.ToTable("Page_Views", (string)null);
                 });
 
             modelBuilder.Entity("project_comp1640_be.Model.Roles", b =>
