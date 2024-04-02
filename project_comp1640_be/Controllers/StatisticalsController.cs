@@ -6,6 +6,7 @@ using Neo4jClient.DataAnnotations.Cypher.Functions;
 using project_comp1640_be.Data;
 using project_comp1640_be.Model;
 using SkiaSharp;
+using System.Linq;
 
 namespace project_comp1640_be.Controllers
 {
@@ -21,41 +22,84 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpGet("guest-statistic")]
-        public async Task<IActionResult> guestStatistic(int academic_year_id)
+        public async Task<IActionResult> guestStatistic(int academic_year_id, string username)
         {
             if (academic_year_id == null) { return BadRequest(new { Message = "Academic Year ID is null" }); }
 
-            var faculties = await _context.Faculties.ToListAsync();
-            List<Object> academic = new List<Object>();
+            if (username == null) { return BadRequest(new { Message = "Data provided is null" }); }
 
-            foreach (var facultie in faculties)
+            var getFaculty = _context.Users.Where(u => u.user_username == username).Select(u => u.user_faculty_id).FirstOrDefault();
+
+            if(academic_year_id == 0)
             {
-                var dataStatisticByAcademic = _context.Academic_Years
-                    .Where(y => y.academic_year_id == academic_year_id)
-                    .Select(y => new  
+                var dataStatistic = _context.Academic_Years
+                    .Select(y => new
                     {
                         ContributionImages = _context.Contributions
-                            .Where(c => c.contribution_academic_years_id == y.academic_year_id
-                                && c.users.user_faculty_id == facultie.faculty_id)
-                            .Select(c => c.contribution_image)
-                            .FirstOrDefault(),
+                                                .Where(c => c.users.user_faculty_id == getFaculty 
+                                                        && c.contribution_academic_years_id == y.academic_year_id)
+                                                .Select(c => c.contribution_image)
+                                                .FirstOrDefault(),
                         StartDate = y.academic_year_ClosureDate,
-                        EndDate = y.academic_year_FinalClosureDate, 
+                        EndDate = y.academic_year_FinalClosureDate,
                         Contributions = _context.Contributions
-                            .Count(c => c.contribution_academic_years_id == y.academic_year_id
-                                && c.users.user_faculty_id == facultie.faculty_id), 
+                                            .Count(c => c.users.user_faculty_id == getFaculty
+                                                        && c.contribution_academic_years_id == y.academic_year_id),
                         UsersCount = _context.Contributions
-                            .Where(c => c.users.user_faculty_id == facultie.faculty_id 
-                                && c.contribution_academic_years_id == y.academic_year_id)
-                            .GroupBy(c => new { c.contribution_user_id, c.contribution_academic_years_id })
-                            .Count(),
-                        FacultyName = facultie.faculty_name 
-                    }).FirstOrDefault();
-
-                academic.Add(dataStatisticByAcademic);
+                                        .Where(c => c.users.user_faculty_id == getFaculty
+                                                    && c.contribution_academic_years_id == y.academic_year_id)
+                                        .GroupBy(c => c.contribution_user_id)
+                                        .Count(),
+                        FacultyName = _context.Faculties.Where(f => f.faculty_id == getFaculty).Select(y => y.faculty_name).FirstOrDefault()
+                    }).ToList();
+                return Ok(dataStatistic);
             }
 
-            return Ok(academic);
+            var data = _context.Academic_Years
+                                    .Where(y => y.academic_year_id == academic_year_id)
+                                    .Select(y => new
+                                    {
+                                        ContributionImages = _context.Contributions
+                                                                .Where(c => c.users.user_faculty_id == getFaculty
+                                                                            && c.contribution_academic_years_id == y.academic_year_id)
+                                                                .Select(c => c.contribution_image)
+                                                                .FirstOrDefault(),
+                                        StartDate = y.academic_year_ClosureDate,
+                                        EndDate = y.academic_year_FinalClosureDate,
+                                        Contributions = _context.Contributions
+                                                            .Count(c => c.users.user_faculty_id == getFaculty
+                                                                        && c.contribution_academic_years_id == y.academic_year_id),
+                                        UsersCount = _context.Contributions
+                                                        .Where(c => c.users.user_faculty_id == getFaculty
+                                                                        && c.contribution_academic_years_id == y.academic_year_id)
+                                                        .GroupBy(c => c.contribution_user_id)
+                                                        .Count(),
+                                        FacultyName = _context.Faculties.Where(f => f.faculty_id == getFaculty).Select(y => y.faculty_name).FirstOrDefault()
+                                    }).ToList();
+
+            //var dataStatisticByAcademic = _context.Academic_Years
+            //    .Where(y => y.academic_year_id == academic_year_id)
+            //    .Select(y => new  
+            //    {
+            //        ContributionImages = _context.Contributions
+            //            .Where(c => c.contribution_academic_years_id == y.academic_year_id
+            //                && c.users.user_faculty_id == facultie.faculty_id)
+            //            .Select(c => c.contribution_image)
+            //            .FirstOrDefault(),
+            //        StartDate = y.academic_year_ClosureDate,
+            //        EndDate = y.academic_year_FinalClosureDate, 
+            //        Contributions = _context.Contributions
+            //            .Count(c => c.contribution_academic_years_id == y.academic_year_id
+            //                && c.users.user_faculty_id == facultie.faculty_id), 
+            //        UsersCount = _context.Contributions
+            //            .Where(c => c.users.user_faculty_id == facultie.faculty_id 
+            //                && c.contribution_academic_years_id == y.academic_year_id)
+            //            .GroupBy(c => new { c.contribution_user_id, c.contribution_academic_years_id })
+            //            .Count(),
+            //        FacultyName = facultie.faculty_name 
+            //    }).FirstOrDefault();
+
+            return Ok(data);
         }
 
         [HttpGet("coordinator-statistic")]
@@ -277,6 +321,41 @@ namespace project_comp1640_be.Controllers
                                                     .Select(p => p.time_stamp).FirstOrDefault()).TotalSeconds)
                     })
                     .FirstOrDefaultAsync();
+                dataStatistic.Add(data);
+            }
+
+            return Ok(dataStatistic);
+        }
+
+        [HttpGet("chart-guest")]
+        public async Task<IActionResult> chartGuest(string username)
+        {
+            if(username == null) { return BadRequest(new {Message = "Data provided is null"}); }
+
+            var getFaculty = _context.Users.Where(u => u.user_username == username).Select(u => u.user_faculty_id).FirstOrDefault();
+
+            var getAllAcademic = _context.Academic_Years.ToList();
+
+            List<Object> dataStatistic = new List<Object>();
+
+            foreach (var academic in getAllAcademic)
+            {
+                var data = _context.Contributions
+                    .Where(c => c.users.user_faculty_id == getFaculty)
+                    .Select(c => new
+                    {
+                        label = academic.academic_year_FinalClosureDate.ToString("yyyy-MM-dd"),
+                        totalArticle = _context.Contributions
+                                        .Where(c => c.users.user_faculty_id == getFaculty 
+                                            && c.contribution_academic_years_id == academic.academic_year_id)
+                                        .Count(),
+                        totalContributor = _context.Contributions
+                                        .Where(c => c.users.user_faculty_id == getFaculty
+                                            && c.contribution_academic_years_id == academic.academic_year_id)
+                                        .GroupBy(c => c.contribution_user_id)
+                                        .Count(),
+                    }).FirstOrDefault();
+
                 dataStatistic.Add(data);
             }
 
