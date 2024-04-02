@@ -20,59 +20,6 @@ namespace project_comp1640_be.Controllers
             _context = context;
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> numberOfContributions(string academic)
-        //{
-        //    if (academic == null)
-        //        return BadRequest();
-
-        //    var academicYearId = _context.Academic_Years
-        //        .Where(a => a.academic_year_title.Contains(academic))
-        //        .Select(a => a.academic_year_id)
-        //        .FirstOrDefault();
-
-        //    if (academicYearId == null)
-        //        return BadRequest();
-
-        //    var lstContributions = _context.Contributions
-        //            .Where(c => c.contribution_academic_years_id == academicYearId)
-        //            .Count();
-
-        //    if (lstContributions == null)
-        //        return BadRequest();
-
-        //    return Ok(lstContributions);
-        //}
-
-        //[HttpGet("Contributor")]
-        //public async Task<IActionResult> numberOfContributor(string academic)
-        //{
-        //    if (academic == null)
-        //        return BadRequest();
-
-        //    var academicYearId = _context.Academic_Years
-        //        .Where(a => a.academic_year_title.Contains(academic))
-        //        .Select(a => a.academic_year_id)
-        //        .FirstOrDefault();
-
-        //    var contributorIds = _context.Contributions
-        //        .GroupBy(c => c.contribution_user_id)
-        //        .Select(group => group.Key)
-        //        .ToList();
-
-
-        //    var lstContributor = _context.Contributions
-        //        .Where(c => c.contribution_academic_years_id == academicYearId)
-        //        .GroupBy(c => c.contribution_user_id)
-        //        .Select(group => group.Key)
-        //        .Count();
-
-        //    if(lstContributor == null)
-        //        return BadRequest();
-
-        //    return Ok(lstContributor);
-        //}
-
         [HttpGet("guest-statistic")]
         public async Task<IActionResult> guestStatistic(int academic_year_id)
         {
@@ -277,5 +224,63 @@ namespace project_comp1640_be.Controllers
             return Ok(dataStatistic);
         }
 
+        [HttpGet("work-duration")]
+        public async Task<IActionResult> workDuration()
+        {
+            var dataStatistic = await _context.Users
+                .Select(u => new {
+                    user_id = u.user_id,
+                    user_username = u.user_username,
+                    user_email = u.user_email,
+                    user_role = u.role.role_name,
+                    total_work_duration = u.total_work_duration,
+                    average_work_duration = u.Page_Views.Where(p => p.page_view_user_id == u.user_id)
+                                                .Select(p => p.time_stamp).FirstOrDefault() == DateTime.Now
+                                                ? u.total_work_duration : (int)(u.total_work_duration / ((int)(DateTime.Now - u.Page_Views.Where(p => p.page_view_user_id == u.user_id)
+                                                .Select(p => p.time_stamp).FirstOrDefault()).TotalSeconds))
+                } ).ToListAsync();
+
+            return Ok(dataStatistic);
+        }
+
+        [HttpGet("view-access-page-browser")]
+        public async Task<IActionResult> viewAccessPageBrowser()
+        {
+
+            var getAllPage = await _context.Page_Views
+                .GroupBy(p => p.page_view_name)
+                .Select(p => new{ p.Key }).ToListAsync();
+
+            if (getAllPage == null) { return BadRequest(new {Message = "Page is null"}); }
+
+            List<Object> dataStatistic = new List<Object>();
+
+            foreach (var page in getAllPage)
+            {
+                var data = await _context.Page_Views
+                    .Where(p => p.page_view_name == page.ToString())
+                    .Select(p => new
+                    {
+                        page_view_name = page.ToString(),
+                        browsers = p.browser_name.ToList(),
+                        role = _context.Users.Where(u => u.user_id == p.page_view_user_id)
+                                .GroupBy(u => u.role.role_name)
+                                .Select(u => new
+                                {
+                                    role_name = u.Key.ToString()
+                                }),
+                        total_access = p.Count(),
+                        total_access_time = p.Sum(),
+                        average_access = Math.Round((double)p.Sum()/p.Count()),
+                        average_access_date = Math.Round((double)p.Sum()/ 
+                                                (double)(DateTime.Now - _context.Page_Views.Where(p => p.page_view_name == page.ToString())
+                                                    .Select(p => p.time_stamp).FirstOrDefault()).TotalSeconds)
+                    })
+                    .FirstOrDefaultAsync();
+                dataStatistic.Add(data);
+            }
+
+            return Ok(dataStatistic);
+        }
     }
 }

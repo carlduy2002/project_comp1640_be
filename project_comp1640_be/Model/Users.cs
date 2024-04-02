@@ -37,6 +37,10 @@ namespace project_comp1640_be.Model
 
         public DateTime? reset_password_exprytime { get; set; }
 
+        public DateTime? last_login {  get; set; }
+        
+        public int? total_work_duration {  get; set; } 
+
         [Required]
         [Column(TypeName = "varchar(10)")]
         public user_status user_status { get; set; } = user_status.Unlock;
@@ -55,6 +59,8 @@ namespace project_comp1640_be.Model
         public ICollection<Contributions>? Contributions { get; set; }
 
         public ICollection<Marketing_Comments>? Marketing_Comments { get; set; }
+
+        public ICollection<Page_Views>? Page_Views { get; set; }
 
     }
 
