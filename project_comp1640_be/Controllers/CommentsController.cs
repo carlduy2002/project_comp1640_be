@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Aspose.Words;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using project_comp1640_be.Data;
@@ -52,6 +53,15 @@ namespace project_comp1640_be.Controllers
 
             if (user_id == null) return BadRequest();
 
+            var submitDate = _context.Contributions.Where(c => c.contribution_id == contribution_id).Select(c => new {c.contribution_submition_date}).FirstOrDefault();
+
+            var submitDeadline = submitDate.contribution_submition_date.AddDays(14);
+
+            if (submitDeadline < DateTime.Now)
+            {
+                return BadRequest(new { Message = "Can not commnet after 14 days." });
+            }
+
             Marketing_Comments marketing_Comments = new Marketing_Comments();
 
             marketing_Comments.comment_content = content;
@@ -66,9 +76,17 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpPost("Update-Comment")]
-        public async Task<IActionResult> UpdateComment(int comment_id, string comments_content)
+        public async Task<IActionResult> UpdateComment(int contribution_id, int comment_id, string comments_content)
         {
-            if(comments_content.Trim().Equals(""))
+            var submitDate = _context.Contributions.Where(c => c.contribution_id == contribution_id).Select(c => new { c.contribution_submition_date }).FirstOrDefault();
+            var submitDeadline = submitDate.contribution_submition_date.AddDays(14);
+
+            if (submitDeadline < DateTime.Now)
+            {
+                return BadRequest(new { Message = "Can not commnet after 14 days." });
+            }
+
+            if (comments_content.Trim().Equals(""))
             {
                 return BadRequest(new {Message = "Comment content is empty!!!"});
             }
@@ -89,8 +107,16 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> deleteComment(int comment_id)
+        public async Task<IActionResult> deleteComment(int contribution_id, int comment_id)
         {
+            var submitDate = _context.Contributions.Where(c => c.contribution_id == contribution_id).Select(c => new { c.contribution_submition_date }).FirstOrDefault();
+            var submitDeadline = submitDate.contribution_submition_date.AddDays(14);
+
+            if (submitDeadline < DateTime.Now)
+            {
+                return BadRequest(new { Message = "Can not commnet after 14 days." });
+            }
+
             var comment = _context.Marketing_Comments.Where(c => c.comment_id == comment_id).FirstOrDefault();
 
             if (comment == null)
