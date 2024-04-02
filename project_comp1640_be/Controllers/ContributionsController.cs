@@ -18,6 +18,7 @@ using System.Text;
 using IEmailService = project_comp1640_be.UtilityService.IEmailService;
 using Aspose.Words;
 using project_comp1640_be.Model.Dto;
+using Neo4jClient.DataAnnotations.Cypher.Functions;
 
 namespace project_comp1640_be.Controllers
 {
@@ -136,7 +137,6 @@ namespace project_comp1640_be.Controllers
             _emailService.SendEmail(emailModel);
         }
 
-
         [HttpPost("Add-New-Article")]
         public async Task<IActionResult> AddNewArticle()
         {
@@ -147,6 +147,10 @@ namespace project_comp1640_be.Controllers
                 var httpRequest = Request.Form;
 
                 var title = Request.Form["title"];
+                if (title.ToString().Trim().Equals(""))
+                {
+                    return BadRequest(new { Message = "Title is empty" });
+                }
 
                 var username = Request.Form["username"];
 
@@ -207,7 +211,13 @@ namespace project_comp1640_be.Controllers
             try
             {
                 var httpRequest = HttpContext.Request.Form;
+
                 var title = httpRequest["title"];
+
+                if (title.ToString().Trim().Equals(""))
+                {
+                    return BadRequest(new { Message = "Title is empty" });
+                }
 
                 var contributionID = httpRequest["contribution_id"];
 
@@ -332,7 +342,7 @@ namespace project_comp1640_be.Controllers
 
                     _context.Contributions.Entry(con).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
-
+                     
                     // get user faculty
                     //var userFacultyID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.faculties.faculty_id).FirstOrDefault();
 
@@ -590,7 +600,7 @@ namespace project_comp1640_be.Controllers
             _context.Entry(contribution).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(new { Message = "Approve successful!!" });
         }
 
 
@@ -607,7 +617,7 @@ namespace project_comp1640_be.Controllers
             _context.Entry(contribution).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(new { Message = "Reject successful!!" });
         }
 
         [HttpPut("Public")]
@@ -623,7 +633,7 @@ namespace project_comp1640_be.Controllers
             _context.Entry(contribution).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(new { message = "Public successful!!" });
         }
 
         [HttpPut("Private")]
@@ -640,7 +650,7 @@ namespace project_comp1640_be.Controllers
             _context.Entry(contribution).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(new { message = "Private successful!!" }); 
         }
 
         [HttpPut]

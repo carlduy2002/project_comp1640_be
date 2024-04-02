@@ -51,6 +51,7 @@ namespace project_comp1640_be.Controllers
                     user_id = u.user_id,
                     user_username = u.user_username,
                     user_email = u.user_email,
+                    user_faculty = u.faculties.faculty_name,
                     role_name = u.role.role_name,
                     user_status = u.user_status
                 })
