@@ -157,6 +157,7 @@ namespace project_comp1640_be.Controllers
             var newRefreshToken = CreateRefreshToken();
             user.refesh_token = newRefreshToken;
             user.refesh_token_exprytime = DateTime.Now.AddDays(1);
+            var lastLogin = user.last_login;
             await _context.SaveChangesAsync();
 
             return Ok(new TokenApiDto()
@@ -474,6 +475,35 @@ namespace project_comp1640_be.Controllers
                 RefreshToken = newRefreshToken,
                 Message = "Succeed"
             });
+        }
+
+        [HttpGet("last-login")]
+        public async Task<IActionResult> lastLogin(string username)
+        {
+            if(username == null) { return BadRequest(new { Message = "Data provided is null" }); }
+
+            var user = _context.Users.Where(u => u.user_username == username).FirstOrDefault();
+
+            if(user == null) { return BadRequest(new { Message = "User is not found" }); }
+
+            return Ok(user.last_login);
+        }
+
+        [HttpPost("add-total-work-duration")]
+        public async Task<IActionResult> addTotalWorkDuration(int time, string username)
+        {
+            if(username == null || time == null) { return BadRequest(new {Message = "Data provided is null"}); }
+
+            var user = _context.Users.Where(u => u.user_username == username).FirstOrDefault();
+
+            if (user == null) { return BadRequest(new { Message = "User is not found" }); }
+
+            user.total_work_duration += time;
+
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new {Message = "Add total work duration successfully"});
         }
     }
 }

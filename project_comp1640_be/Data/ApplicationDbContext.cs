@@ -14,6 +14,7 @@ namespace project_comp1640_be.Data
         public DbSet<Marketing_Comments> Marketing_Comments { get; set; }
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Academic_Years> Academic_Years { get; set; }
+        public DbSet<Page_Views> Page_Views { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +24,7 @@ namespace project_comp1640_be.Data
             modelBuilder.Entity<Marketing_Comments>().ToTable("Marketing_Comments");
             modelBuilder.Entity<Roles>().ToTable("Roles");
             modelBuilder.Entity<Academic_Years>().ToTable("Academic_Years");
+            modelBuilder.Entity<Page_Views>().ToTable("Page_Views");
 
             modelBuilder.Entity<Marketing_Comments>()
                 .HasOne(m => m.users)
