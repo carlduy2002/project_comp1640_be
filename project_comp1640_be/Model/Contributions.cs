@@ -57,7 +57,7 @@ namespace project_comp1640_be.Model
 
     public enum IsSelected
     {
-        Selected, Unselected
+        Selected, Unselected, Pending
     }
 
     public enum IsView 
@@ -67,6 +67,6 @@ namespace project_comp1640_be.Model
 
     public enum IsPublic
     {
-        Private, Public
+        Private, Public, NotPublic
     }
 }

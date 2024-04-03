@@ -13,7 +13,7 @@ namespace project_comp1640_be.Controllers
         private ApplicationDbContext _context;
 
         public Marketing_CommentsController(ApplicationDbContext context) => _context = context;
-
+        
         [HttpPut("Update-Comment")]
         public async Task<IActionResult> UpdateComment(int id, Marketing_Comments comments)
         {
