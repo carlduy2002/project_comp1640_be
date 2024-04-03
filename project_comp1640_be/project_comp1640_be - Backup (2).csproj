@@ -7,18 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Articles\**" />
-    <Compile Remove="Imgs\**" />
-    <Content Remove="Articles\**" />
-    <Content Remove="Imgs\**" />
-    <EmbeddedResource Remove="Articles\**" />
-    <EmbeddedResource Remove="Imgs\**" />
-    <None Remove="Articles\**" />
-    <None Remove="Imgs\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Aspose.Words" Version="24.4.0" />
+    <PackageReference Include="Aspose.Words" Version="24.3.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.0" />
@@ -35,6 +24,10 @@
     <PackageReference Include="NETCore.MailKit" Version="2.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Articles\" />
   </ItemGroup>
 
 </Project>
