@@ -76,36 +76,37 @@ namespace project_comp1640_be.Controllers
                                                         .Count(),
                                         FacultyName = _context.Faculties.Where(f => f.faculty_id == getFaculty).Select(y => y.faculty_name).FirstOrDefault()
                                     }).ToList();
-
-            //var dataStatisticByAcademic = _context.Academic_Years
-            //    .Where(y => y.academic_year_id == academic_year_id)
-            //    .Select(y => new  
-            //    {
-            //        ContributionImages = _context.Contributions
-            //            .Where(c => c.contribution_academic_years_id == y.academic_year_id
-            //                && c.users.user_faculty_id == facultie.faculty_id)
-            //            .Select(c => c.contribution_image)
-            //            .FirstOrDefault(),
-            //        StartDate = y.academic_year_ClosureDate,
-            //        EndDate = y.academic_year_FinalClosureDate, 
-            //        Contributions = _context.Contributions
-            //            .Count(c => c.contribution_academic_years_id == y.academic_year_id
-            //                && c.users.user_faculty_id == facultie.faculty_id), 
-            //        UsersCount = _context.Contributions
-            //            .Where(c => c.users.user_faculty_id == facultie.faculty_id 
-            //                && c.contribution_academic_years_id == y.academic_year_id)
-            //            .GroupBy(c => new { c.contribution_user_id, c.contribution_academic_years_id })
-            //            .Count(),
-            //        FacultyName = facultie.faculty_name 
-            //    }).FirstOrDefault();
-
             return Ok(data);
         }
 
         [HttpGet("coordinator-statistic")]
-        public async Task<IActionResult> coordinatorStatistic(int academic_year_id)
+        public async Task<IActionResult> coordinatorStatistic(int academic_year_id, string username)
         {
             if (academic_year_id == null) { return BadRequest(new { Message = "Academic Year ID is null" }); }
+
+            var getFacultyID = _context.Users.Where(u => u.user_username == username)
+                                                .Select(u => u.faculties.faculty_id).FirstOrDefault();
+
+            if(academic_year_id == 0)
+            {
+                var dataStatistic = _context.Academic_Years
+                .Select(y => new
+                {
+                    academic_year_id = y.academic_year_id,
+                    title = y.academic_year_title,
+                    StartDate = y.academic_year_ClosureDate,
+                    EndDate = y.academic_year_FinalClosureDate,
+                    usersCount = y.contributions
+                            .Where(c => c.contribution_academic_years_id == y.academic_year_id 
+                                            && c.users.user_faculty_id == getFacultyID)
+                            .GroupBy(c => c.users.user_id)
+                            .Count(),
+                    contribution = y.contributions.Where(c => c.contribution_academic_years_id == y.academic_year_id
+                                                                && c.users.user_faculty_id == getFacultyID).Count(),
+                }).ToList();
+
+                return Ok(dataStatistic);
+            }
 
             var dataStatisticByAcademic = _context.Academic_Years
                 .Where(y => y.academic_year_id == academic_year_id)
@@ -116,10 +117,12 @@ namespace project_comp1640_be.Controllers
                     StartDate = y.academic_year_ClosureDate,
                     EndDate = y.academic_year_FinalClosureDate,
                     usersCount = y.contributions
-                            .Where(c => c.contribution_academic_years_id == y.academic_year_id)
+                            .Where(c => c.contribution_academic_years_id == y.academic_year_id 
+                                            && c.users.user_faculty_id == getFacultyID)
                             .GroupBy(c => c.users.user_id)
                             .Count(),
-                    contribution = y.contributions.Where(c => c.contribution_academic_years_id == y.academic_year_id).Count(),
+                    contribution = y.contributions.Where(c => c.contribution_academic_years_id == y.academic_year_id 
+                                                                && c.users.user_faculty_id == getFacultyID).Count(),
                 }).ToList();
 
             return Ok(dataStatisticByAcademic);
@@ -130,7 +133,9 @@ namespace project_comp1640_be.Controllers
         {
             if (academic_year_id == null) { return BadRequest(new { Message = "Academic Year ID is null" }); }
 
-            var faculties = await _context.Faculties.ToListAsync();
+            var faculties = _context.Faculties
+                        .Where(fa => fa.faculty_name != "Admin_Account" && fa.faculty_name != "Manager_Account").ToList();
+
             List<Object> academic = new List<Object>();
 
             foreach (var facultie in faculties)
@@ -162,11 +167,11 @@ namespace project_comp1640_be.Controllers
                             .Count()/_context.Contributions
                             .Where(c => c.contribution_academic_years_id == y.academic_year_id)
                             .GroupBy(c => new { c.contribution_user_id, c.contribution_academic_years_id })
-                            .Count()*100, 2),
+                            .Count()*100),
                         entireContribution = Math.Round((double)_context.Contributions
                             .Count(c => c.contribution_academic_years_id == y.academic_year_id
                                 && c.users.user_faculty_id == facultie.faculty_id)/ _context.Contributions
-                            .Count(c => c.contribution_academic_years_id == y.academic_year_id)*100, 2)
+                            .Count(c => c.contribution_academic_years_id == y.academic_year_id)*100)
                     }).FirstOrDefault();
 
                 academic.Add(dataStatisticByAcademic);
@@ -354,6 +359,42 @@ namespace project_comp1640_be.Controllers
                                             && c.contribution_academic_years_id == academic.academic_year_id)
                                         .GroupBy(c => c.contribution_user_id)
                                         .Count(),
+                    }).FirstOrDefault();
+
+                dataStatistic.Add(data);
+            }
+
+            return Ok(dataStatistic);
+        }
+
+        [HttpGet("chart-admin")]
+        public async Task<IActionResult> chartAdmin()
+        {
+            var faculties = _context.Faculties
+                        .Where(fa => fa.faculty_name != "Admin_Account" && fa.faculty_name != "Manager_Account").ToList();
+
+            List<Object> dataStatistic = new List<Object>();
+
+            double totalArticle = await _context.Contributions.CountAsync();
+
+            foreach (var facultie in faculties)
+            {
+                var data = _context.Contributions
+                    .Select(c => new
+                    {
+                        facultyName = facultie.faculty_name,
+                        contributors = _context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id)
+                                                    .GroupBy(c => c.contribution_user_id).Count(),
+                        articles = _context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id).Count(),
+                        percenContributor = Math.Round(((double)(_context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id)
+                                                    .GroupBy(c => c.contribution_user_id).Count())/ (double)(_context.Contributions
+                                                    .GroupBy(c => c.contribution_user_id).Count())*100)),
+                        percenArticles = Math.Round((((double)(_context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id).Count()))
+                                                     /(totalArticle))*100)
                     }).FirstOrDefault();
 
                 dataStatistic.Add(data);
