@@ -6,6 +6,7 @@ using Neo4jClient.DataAnnotations.Cypher.Functions;
 using project_comp1640_be.Data;
 using project_comp1640_be.Model;
 using SkiaSharp;
+using System.Data;
 using System.Linq;
 
 namespace project_comp1640_be.Controllers
@@ -422,11 +423,79 @@ namespace project_comp1640_be.Controllers
                                                averageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access)/
                                                (double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Count() / 3600, 4),
                                                dailyAverageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access) /
-                                               ((double)(_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last()
-                                               - _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault()).TotalDays
-                                               + 1)/ 3600, 4),
+                                               (((double)(_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                               - _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                               ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                               - _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                               )) / 3600, 4),
                                                totalTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access) / 3600, 4) 
                                            }).ToList();
+            return Ok(data);
+        }
+
+        [HttpGet("page-chart")]
+        public async Task<IActionResult> pageChart()
+        {
+            var data = _context.Page_Views
+                               .GroupBy(p => p.page_view_name)
+                               .Select(pv => new
+                               {
+                                   pageName = pv.Key.ToString(),
+                                   totalVisit = _context.Page_Views.Where(p => p.page_view_name == pv.Key).Count(),
+                                   averageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Count() / 3600, 4),
+                                   dailyAverageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (((double)(_context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   )) / 3600, 4),
+                                   totalTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Sum(p => p.total_time_access) / 3600, 4)
+                               }).ToList();
+            return Ok(data);
+        }
+
+        [HttpGet("browser-chart")]
+        public async Task<IActionResult> browserChart()
+        {
+            var data = _context.Page_Views
+                               .GroupBy(p => p.browser_name)
+                               .Select(pv => new
+                               {
+                                   browserName = pv.Key.ToString(),
+                                   totalVisit = _context.Page_Views.Where(p => p.browser_name == pv.Key).Count(),
+                                   averageTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Count() / 3600, 4),
+                                   dailyAverageTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (((double)(_context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   )) / 3600, 4),
+                                   totalTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) / 3600, 4)
+                               }).ToList();
+            return Ok(data);
+        }
+
+        [HttpGet("role-chart")]
+        public async Task<IActionResult> roleChart()
+        {
+            var data = _context.Page_Views
+                               .GroupBy(p => p.users.role.role_name)
+                               .Select(pv => new
+                               {
+                                   roleName = pv.Key.ToString(),
+                                   totalVisit = _context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Count(),
+                                   averageTime = Math.Round(((double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Count()) / 3600, 4),
+                                   dailyAverageTime = Math.Round(((double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (((double)(_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   ))) / 3600, 4),
+                                   totalTime = Math.Round((double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Sum(p => p.total_time_access) / 3600, 4)
+                               }).ToList();
             return Ok(data);
         }
     }
