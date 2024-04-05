@@ -490,7 +490,7 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpPost("add-total-work-duration")]
-        public async Task<IActionResult> addTotalWorkDuration(int time, string username)
+        public async Task<IActionResult> addTotalWorkDurationgit(int time, string username)
         {
             if(username == null || time == null) { return BadRequest(new {Message = "Data provided is null"}); }
 
