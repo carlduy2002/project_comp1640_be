@@ -6,6 +6,7 @@ using Neo4jClient.DataAnnotations.Cypher.Functions;
 using project_comp1640_be.Data;
 using project_comp1640_be.Model;
 using SkiaSharp;
+using System.Data;
 using System.Linq;
 
 namespace project_comp1640_be.Controllers
@@ -76,36 +77,37 @@ namespace project_comp1640_be.Controllers
                                                         .Count(),
                                         FacultyName = _context.Faculties.Where(f => f.faculty_id == getFaculty).Select(y => y.faculty_name).FirstOrDefault()
                                     }).ToList();
-
-            //var dataStatisticByAcademic = _context.Academic_Years
-            //    .Where(y => y.academic_year_id == academic_year_id)
-            //    .Select(y => new  
-            //    {
-            //        ContributionImages = _context.Contributions
-            //            .Where(c => c.contribution_academic_years_id == y.academic_year_id
-            //                && c.users.user_faculty_id == facultie.faculty_id)
-            //            .Select(c => c.contribution_image)
-            //            .FirstOrDefault(),
-            //        StartDate = y.academic_year_ClosureDate,
-            //        EndDate = y.academic_year_FinalClosureDate, 
-            //        Contributions = _context.Contributions
-            //            .Count(c => c.contribution_academic_years_id == y.academic_year_id
-            //                && c.users.user_faculty_id == facultie.faculty_id), 
-            //        UsersCount = _context.Contributions
-            //            .Where(c => c.users.user_faculty_id == facultie.faculty_id 
-            //                && c.contribution_academic_years_id == y.academic_year_id)
-            //            .GroupBy(c => new { c.contribution_user_id, c.contribution_academic_years_id })
-            //            .Count(),
-            //        FacultyName = facultie.faculty_name 
-            //    }).FirstOrDefault();
-
             return Ok(data);
         }
 
         [HttpGet("coordinator-statistic")]
-        public async Task<IActionResult> coordinatorStatistic(int academic_year_id)
+        public async Task<IActionResult> coordinatorStatistic(int academic_year_id, string username)
         {
             if (academic_year_id == null) { return BadRequest(new { Message = "Academic Year ID is null" }); }
+
+            var getFacultyID = _context.Users.Where(u => u.user_username == username)
+                                                .Select(u => u.faculties.faculty_id).FirstOrDefault();
+
+            if(academic_year_id == 0)
+            {
+                var dataStatistic = _context.Academic_Years
+                .Select(y => new
+                {
+                    academic_year_id = y.academic_year_id,
+                    title = y.academic_year_title,
+                    StartDate = y.academic_year_ClosureDate,
+                    EndDate = y.academic_year_FinalClosureDate,
+                    usersCount = y.contributions
+                            .Where(c => c.contribution_academic_years_id == y.academic_year_id 
+                                            && c.users.user_faculty_id == getFacultyID)
+                            .GroupBy(c => c.users.user_id)
+                            .Count(),
+                    contribution = y.contributions.Where(c => c.contribution_academic_years_id == y.academic_year_id
+                                                                && c.users.user_faculty_id == getFacultyID).Count(),
+                }).ToList();
+
+                return Ok(dataStatistic);
+            }
 
             var dataStatisticByAcademic = _context.Academic_Years
                 .Where(y => y.academic_year_id == academic_year_id)
@@ -116,10 +118,12 @@ namespace project_comp1640_be.Controllers
                     StartDate = y.academic_year_ClosureDate,
                     EndDate = y.academic_year_FinalClosureDate,
                     usersCount = y.contributions
-                            .Where(c => c.contribution_academic_years_id == y.academic_year_id)
+                            .Where(c => c.contribution_academic_years_id == y.academic_year_id 
+                                            && c.users.user_faculty_id == getFacultyID)
                             .GroupBy(c => c.users.user_id)
                             .Count(),
-                    contribution = y.contributions.Where(c => c.contribution_academic_years_id == y.academic_year_id).Count(),
+                    contribution = y.contributions.Where(c => c.contribution_academic_years_id == y.academic_year_id 
+                                                                && c.users.user_faculty_id == getFacultyID).Count(),
                 }).ToList();
 
             return Ok(dataStatisticByAcademic);
@@ -130,7 +134,9 @@ namespace project_comp1640_be.Controllers
         {
             if (academic_year_id == null) { return BadRequest(new { Message = "Academic Year ID is null" }); }
 
-            var faculties = await _context.Faculties.ToListAsync();
+            var faculties = _context.Faculties
+                        .Where(fa => fa.faculty_name != "Admin_Account" && fa.faculty_name != "Manager_Account").ToList();
+
             List<Object> academic = new List<Object>();
 
             foreach (var facultie in faculties)
@@ -162,11 +168,11 @@ namespace project_comp1640_be.Controllers
                             .Count()/_context.Contributions
                             .Where(c => c.contribution_academic_years_id == y.academic_year_id)
                             .GroupBy(c => new { c.contribution_user_id, c.contribution_academic_years_id })
-                            .Count()*100, 2),
+                            .Count()*100),
                         entireContribution = Math.Round((double)_context.Contributions
                             .Count(c => c.contribution_academic_years_id == y.academic_year_id
                                 && c.users.user_faculty_id == facultie.faculty_id)/ _context.Contributions
-                            .Count(c => c.contribution_academic_years_id == y.academic_year_id)*100, 2)
+                            .Count(c => c.contribution_academic_years_id == y.academic_year_id)*100)
                     }).FirstOrDefault();
 
                 academic.Add(dataStatisticByAcademic);
@@ -360,6 +366,137 @@ namespace project_comp1640_be.Controllers
             }
 
             return Ok(dataStatistic);
+        }
+
+        [HttpGet("chart-admin")]
+        public async Task<IActionResult> chartAdmin()
+        {
+            var faculties = _context.Faculties
+                        .Where(fa => fa.faculty_name != "Admin_Account" && fa.faculty_name != "Manager_Account").ToList();
+
+            List<Object> dataStatistic = new List<Object>();
+
+            double totalArticle = await _context.Contributions.CountAsync();
+
+            foreach (var facultie in faculties)
+            {
+                var data = _context.Contributions
+                    .Select(c => new
+                    {
+                        facultyName = facultie.faculty_name,
+                        contributors = _context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id)
+                                                    .GroupBy(c => c.contribution_user_id).Count(),
+                        articles = _context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id).Count(),
+                        percenContributor = Math.Round(((double)(_context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id)
+                                                    .GroupBy(c => c.contribution_user_id).Count())/ (double)(_context.Contributions
+                                                    .GroupBy(c => c.contribution_user_id).Count())*100)),
+                        percenArticles = Math.Round((((double)(_context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id).Count()))
+                                                     /(totalArticle))*100)
+                    }).FirstOrDefault();
+
+                dataStatistic.Add(data);
+            }
+
+            return Ok(dataStatistic);
+        }
+
+        [HttpGet("page-browser-role-statistic")]
+        public async Task<IActionResult> pageBrowserRoleStatistic(string page_name, string browser_name, string role)
+        {
+            if (page_name == null || browser_name == null || role == null)
+                return BadRequest(new { Message = "Data provided is null" });
+
+            var data = _context.Page_Views.Where(p => p.page_view_name == page_name
+                                                            && p.browser_name == browser_name
+                                                            && p.users.role.role_name == role)
+                                           .GroupBy(p => p.page_view_user_id)
+                                           .Select(pv => new
+                                           {
+                                               pageName = page_name,
+                                               browserName = browser_name,
+                                               username = _context.Users.Where(u => u.user_id == pv.Key).Select(u => u.user_username).FirstOrDefault(),
+                                               totalVisit = _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Count(),
+                                               averageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access)/
+                                               (double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Count() / 3600, 4),
+                                               dailyAverageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access) /
+                                               (((double)(_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                               - _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                               ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                               - _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                               )) / 3600, 4),
+                                               totalTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access) / 3600, 4) 
+                                           }).ToList();
+            return Ok(data);
+        }
+
+        [HttpGet("page-chart")]
+        public async Task<IActionResult> pageChart()
+        {
+            var data = _context.Page_Views
+                               .GroupBy(p => p.page_view_name)
+                               .Select(pv => new
+                               {
+                                   pageName = pv.Key.ToString(),
+                                   totalVisit = _context.Page_Views.Where(p => p.page_view_name == pv.Key).Count(),
+                                   averageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Count() / 3600, 4),
+                                   dailyAverageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (((double)(_context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   )) / 3600, 4),
+                                   totalTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Sum(p => p.total_time_access) / 3600, 4)
+                               }).ToList();
+            return Ok(data);
+        }
+
+        [HttpGet("browser-chart")]
+        public async Task<IActionResult> browserChart()
+        {
+            var data = _context.Page_Views
+                               .GroupBy(p => p.browser_name)
+                               .Select(pv => new
+                               {
+                                   browserName = pv.Key.ToString(),
+                                   totalVisit = _context.Page_Views.Where(p => p.browser_name == pv.Key).Count(),
+                                   averageTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Count() / 3600, 4),
+                                   dailyAverageTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (((double)(_context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   )) / 3600, 4),
+                                   totalTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) / 3600, 4)
+                               }).ToList();
+            return Ok(data);
+        }
+
+        [HttpGet("role-chart")]
+        public async Task<IActionResult> roleChart()
+        {
+            var data = _context.Page_Views
+                               .GroupBy(p => p.users.role.role_name)
+                               .Select(pv => new
+                               {
+                                   roleName = pv.Key.ToString(),
+                                   totalVisit = _context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Count(),
+                                   averageTime = Math.Round(((double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Count()) / 3600, 4),
+                                   dailyAverageTime = Math.Round(((double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Sum(p => p.total_time_access) /
+                                   (((double)(_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                   - _context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                   ))) / 3600, 4),
+                                   totalTime = Math.Round((double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Sum(p => p.total_time_access) / 3600, 4)
+                               }).ToList();
+            return Ok(data);
         }
     }
 }

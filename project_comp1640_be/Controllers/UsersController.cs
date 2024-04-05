@@ -489,6 +489,23 @@ namespace project_comp1640_be.Controllers
             return Ok(user.last_login);
         }
 
+        [HttpPost("add-last-login")]
+        public async Task<IActionResult> AddLastLogin(string username)
+        {
+            if (username == null) { return BadRequest(new { Message = "Data provided is null" }); }
+
+            var user = _context.Users.Where(u => u.user_username == username).FirstOrDefault();
+
+            if (user == null) { return BadRequest(new { Message = "User is not found" }); }
+
+            user.last_login = DateTime.Now;
+
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new {Message = "Add last login successfully"});
+        }
+
         [HttpPost("add-total-work-duration")]
         public async Task<IActionResult> addTotalWorkDurationgit(int time, string username)
         {
