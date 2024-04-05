@@ -18,11 +18,7 @@
                             color:white;border-radius:4px;display:block;margin:0 auto;width:50%;text-align:center;text-decoration:none"">Reset Password</a><br>
             
                             <p>Kind Regards,<br><br>
-<<<<<<< HEAD
                             Annual University Magazine </P>
-=======
-                            Annual University Magazine</P>
->>>>>>> master
                         </div>
                       </div>
                     </div>
