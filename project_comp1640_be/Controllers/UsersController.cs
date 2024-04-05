@@ -482,7 +482,7 @@ namespace project_comp1640_be.Controllers
         {
             if(username == null) { return BadRequest(new { Message = "Data provided is null" }); }
 
-            var user = _context.Users.Where(u => u.user_username == username).FirstOrDefault();
+            var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
 
             if(user == null) { return BadRequest(new { Message = "User is not found" }); }
 
