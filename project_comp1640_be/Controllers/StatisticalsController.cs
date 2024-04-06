@@ -275,23 +275,41 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpGet("work-duration")]
-        public async Task<IActionResult> workDuration()
+        public async Task<IActionResult> WorkDuration(int user_role_id)
         {
-            var dataStatistic = await _context.Users
-                .Select(u => new {
+            const double HoursInDay = 24.0;
+
+            IQueryable<Users> query = _context.Users;
+
+            // Filter users by role if user_role_id is provided
+            if (user_role_id != 0)
+            {
+                query = query.Where(u => u.user_role_id == user_role_id);
+            }
+
+            var dataStatistic = await query
+                .Select(u => new
+                {
                     user_id = u.user_id,
                     user_username = u.user_username,
                     user_email = u.user_email,
                     user_role = u.role.role_name,
                     total_work_duration = u.total_work_duration,
-                    average_work_duration = u.Page_Views.Where(p => p.page_view_user_id == u.user_id)
-                                                .Select(p => p.time_stamp).FirstOrDefault() == DateTime.Now
-                                                ? u.total_work_duration : (int)(u.total_work_duration / ((int)(DateTime.Now - u.Page_Views.Where(p => p.page_view_user_id == u.user_id)
-                                                .Select(p => p.time_stamp).FirstOrDefault()).TotalSeconds))
-                } ).ToListAsync();
+            average_work_duration = u.Page_Views
+                .Where(p => p.page_view_user_id == u.user_id && p.time_stamp.Date == DateTime.Today)
+                .Sum(p => p.total_time_access / 60) / HoursInDay
+                })
+                .ToListAsync();
+
+            // Check if dataStatistic is empty
+            if (dataStatistic == null || !dataStatistic.Any())
+            {
+                return BadRequest(new { Message = "Data is empty" });
+            }
 
             return Ok(dataStatistic);
         }
+
 
         [HttpGet("view-access-page-browser")]
         public async Task<IActionResult> viewAccessPageBrowser()
