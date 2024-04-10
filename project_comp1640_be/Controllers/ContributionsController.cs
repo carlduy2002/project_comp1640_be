@@ -221,19 +221,14 @@ namespace project_comp1640_be.Controllers
 
                 var currentDate = DateTime.UtcNow;
 
-                var academicYearID = _context.Contributions
+                var submitDatetime = _context.Contributions
                     .Where(c => c.contribution_id.Equals(int.Parse(contributionID)))
-                    .Select(c => c.contribution_academic_years_id)
-                    .FirstOrDefault();
-
-                var getAcademicYear = _context.Academic_Years
-                    .Where(a => a.academic_year_id == academicYearID)
-                    .Select(a => a.academic_year_FinalClosureDate)
+                    .Select(c => c.contribution_submition_date)
                     .FirstOrDefault();
 
                 //var test = DateTime.Parse("2024-04-09 07:00:00.0000000");
-
-                if (currentDate < getAcademicYear)
+                
+                if (currentDate < submitDatetime.AddDays(14))
                 {
                     if (article == null && thumbnailImg == null)
                     {
@@ -618,12 +613,23 @@ namespace project_comp1640_be.Controllers
 
             var currentDate = DateTime.UtcNow;
 
+            var academicYearID = _context.Contributions
+                .Where(c => c.contribution_id == contribution_id)
+                .Select(c => c.contribution_academic_years_id)
+                .FirstOrDefault();
+
+            var getAcademicYear = _context.Academic_Years
+                .Where(a => a.academic_year_id == academicYearID)
+                .Select(a => a.academic_year_FinalClosureDate)
+                .FirstOrDefault();
+
             if (contribution == null)
                 return BadRequest(new { Message = "Cannot change status approve" });
 
-            //var test = DateTime.Parse("2024-04-23 07:00:00.0000000");
 
-            if (currentDate < contribution.contribution_submition_date.AddDays(14))
+            //var test = DateTime.Parse("2025-01-01 07:00:00.0000000");
+
+            if (currentDate < getAcademicYear)
             {
                 contribution.IsSelected = IsSelected.Selected;
 
@@ -646,12 +652,22 @@ namespace project_comp1640_be.Controllers
 
             var currentDate = DateTime.UtcNow;
 
+            var academicYearID = _context.Contributions
+               .Where(c => c.contribution_id == contribution_id)
+               .Select(c => c.contribution_academic_years_id)
+               .FirstOrDefault();
+
+            var getAcademicYear = _context.Academic_Years
+                .Where(a => a.academic_year_id == academicYearID)
+                .Select(a => a.academic_year_FinalClosureDate)
+                .FirstOrDefault();
+
             if (contribution == null)
                 return BadRequest(new { Message = "Cannot change status approve" });
 
-            //var test = DateTime.Parse("2024-04-23 07:00:00.0000000");
+            //var test = DateTime.Parse("2025-01-01 07:00:00.0000000");
 
-            if (currentDate < contribution.contribution_submition_date.AddDays(14))
+            if (currentDate < getAcademicYear)
             {
                 contribution.IsSelected = IsSelected.Unselected;
 
