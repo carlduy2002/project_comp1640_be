@@ -759,8 +759,7 @@ namespace project_comp1640_be.Controllers
                 var contribution = _context.Contributions
                     .Include(c => c.users)
                     .Include(c => c.academic_years)
-                    .Where(c => c.contribution_user_id.Equals(i) && c.IsEnabled.Equals(IsEnabled.Enabled)
-                            && c.IsPublic.Equals(IsPublic.Private))
+                    .Where(c => c.contribution_user_id.Equals(i) && c.IsEnabled.Equals(IsEnabled.Enabled))
                     .Select(c => new ContributionDTO
                     {
                         contribution_id = c.contribution_id,
