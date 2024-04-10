@@ -19,6 +19,7 @@ using IEmailService = project_comp1640_be.UtilityService.IEmailService;
 using Aspose.Words;
 using project_comp1640_be.Model.Dto;
 using Neo4jClient.DataAnnotations.Cypher.Functions;
+using Aspose.Words.Bibliography;
 
 namespace project_comp1640_be.Controllers
 {
@@ -193,7 +194,7 @@ namespace project_comp1640_be.Controllers
                 //var userFaculty = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
 
                 // fine faculty manager and send email
-                var maketingCondinatorUser = _context.Users.Where(u => u.user_faculty_id == user.user_faculty_id && u.role.role_name.Equals("Coordinator")).FirstOrDefault();   
+                var maketingCondinatorUser = _context.Users.Where(u => u.user_faculty_id == user.user_faculty_id && u.role.role_name.Equals("Coordinator")).FirstOrDefault();
                 var maketingCondinatorEmail = maketingCondinatorUser.user_email;
                 SendEmail(maketingCondinatorEmail, con.contribution_id);
 
@@ -342,7 +343,7 @@ namespace project_comp1640_be.Controllers
 
                     _context.Contributions.Entry(con).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
-                     
+
                     // get user faculty
                     //var userFacultyID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.faculties.faculty_id).FirstOrDefault();
 
@@ -448,7 +449,7 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpGet("Get-Article")]
-        public async Task<IActionResult> GetArticleById(int contribution_id)    
+        public async Task<IActionResult> GetArticleById(int contribution_id)
         {
             if (contribution_id == null)
             {
@@ -462,9 +463,9 @@ namespace project_comp1640_be.Controllers
             }
 
             var wordFile = LoadWordFile(contribution.contribution_content);
-            
+
             contribution.contribution_content = await wordFile;
-            return Ok( new { result = contribution });
+            return Ok(new { result = contribution });
         }
 
         [HttpGet("Get-Article-Of-Student")]
@@ -650,7 +651,7 @@ namespace project_comp1640_be.Controllers
             _context.Entry(contribution).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Private successful!!" }); 
+            return Ok(new { message = "Private successful!!" });
         }
 
         [HttpPut]
@@ -683,7 +684,7 @@ namespace project_comp1640_be.Controllers
             using (var zipArchive = new ZipArchive(streamFile, ZipArchiveMode.Create, true))
             {
                 if (System.IO.File.Exists(filePath))
-                {   
+                {
                     var entryName = Path.GetFileName(filePath);
                     zipArchive.CreateEntryFromFile(filePath, entryName);
                 }
@@ -704,7 +705,7 @@ namespace project_comp1640_be.Controllers
             var contributions = await _context.Contributions
                 .Where(c => c.users.user_faculty_id == faculty_id && c.contribution_academic_years_id.Equals(acdemic_year_id) && c.IsSelected.Equals(IsSelected.Selected))
                 .ToListAsync();
-                
+
             if (contributions == null) { return BadRequest(new { Message = "Contribution is not found" }); }
 
             List<string> FileNamesList = new List<string>();
@@ -733,7 +734,7 @@ namespace project_comp1640_be.Controllers
             streamFile.Position = 0;
 
             return File(streamFile, "application/zip", zipFileName);
-        }   
+        }
 
         [HttpGet("GetContributionByFaculty")]
         public async Task<IActionResult> GetContributionByFaculty(string username)
@@ -785,5 +786,35 @@ namespace project_comp1640_be.Controllers
             return Ok(lstContribution);
         }
 
+        [HttpGet("GetContributionOfFaculty")]
+        public async Task<IActionResult> GetContributionOfFaculty()
+        {
+            List<object> contributionImg = new List<object>();
+
+            var faculties = _context.Faculties.Where(f => !f.faculty_name.Equals("None")).ToList();
+
+            foreach (var faculty in faculties)
+            {
+                var f = _context.Contributions
+                    .Select(c => new {
+                    id = faculty.faculty_id,
+                    name = faculty.faculty_name,
+                    img = _context.Contributions.Where(c => c.users.user_faculty_id == faculty.faculty_id).Select(c => c.contribution_image).FirstOrDefault()
+            }).FirstOrDefault();
+                contributionImg.Add(f);
+            }
+            return Ok(contributionImg);
+        }
+        [HttpGet("GetContributionByFacultyId")]
+        public async Task<IActionResult> GetContributionByFacultyId(int facultyId)
+        {
+            var contributions = _context.Contributions.Where(c => c.users.user_faculty_id == facultyId).ToList();
+
+            if(contributions.Count <= 0)
+            {
+                return BadRequest(new { Message = "Not found" });
+            }
+            return Ok(contributions);
+        }
     }
 }

@@ -21,7 +21,6 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> getAllFaculty()
         {
             var roles = _context.Faculties.ToList();
-
             return Ok(roles);
         }
 
