@@ -52,23 +52,45 @@ namespace project_comp1640_be.Controllers
             if (user_id == null)
                 return BadRequest();
 
-            Marketing_Comments marketing_Comments = new Marketing_Comments();
+            var currentDate = DateTime.UtcNow;
 
-            marketing_Comments.comment_content = content;
-            marketing_Comments.comment_date = DateTime.Now;
-            marketing_Comments.comment_user_id = user_id;
-            marketing_Comments.comment_contribution_id = contribution_id;
+            var academicYearID = _context.Contributions
+                .Where(c => c.contribution_id == contribution_id)
+                .Select(c => c.contribution_academic_years_id)
+                .FirstOrDefault();
 
-            _context.Marketing_Comments.Add(marketing_Comments);
-            await _context.SaveChangesAsync();
+            var getAcademicYear = _context.Academic_Years
+                .Where(a => a.academic_year_id == academicYearID)
+                .Select(a => a.academic_year_FinalClosureDate) 
+                .FirstOrDefault();
 
-            return Ok(new { Messasge = "Add Comment Succeed" });
+            //var test = DateTime.Parse("2024-04-09 07:00:00.0000000");
+
+            if (currentDate < getAcademicYear)
+            {
+                Marketing_Comments marketing_Comments = new Marketing_Comments();
+
+                marketing_Comments.comment_content = content;
+                marketing_Comments.comment_date = DateTime.Now;
+                marketing_Comments.comment_user_id = user_id;
+                marketing_Comments.comment_contribution_id = contribution_id;
+
+                _context.Marketing_Comments.Add(marketing_Comments);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { Message = "Add Comment Succeed" });
+            }
+            else
+            {
+                return BadRequest(new { Message = "This Contribution Expried Comment!" });
+            }
         }
 
         [HttpPut("Update-Comment")]
         public async Task<IActionResult> UpdateComment(int id, Marketing_Comments comments)
         {
             var exitComment = await _context.Marketing_Comments.FindAsync(id);
+
             if (exitComment != null)
             {
                 return NotFound(new { Message = "Comment is not found" });
