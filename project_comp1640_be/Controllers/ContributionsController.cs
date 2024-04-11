@@ -176,7 +176,11 @@ namespace project_comp1640_be.Controllers
                 var academicyear = _context.Academic_Years.Where(academicYear => academicYear.academic_year_ClosureDate.Year == date.Year).Select(a => a.academic_year_id).FirstOrDefault();
                 con.contribution_academic_years_id = academicyear;
 
-                var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
+                var user = _context.Users.Where(u => u.user_username.Equals(username) && u.user_status == user_status.Unlock).FirstOrDefault();
+                if (user == null)
+                {
+                    return BadRequest(new { Message = "User not found" });
+                }
                 var userId = user.user_id;
                 con.contribution_user_id = userId;
 
@@ -808,7 +812,7 @@ namespace project_comp1640_be.Controllers
         [HttpGet("GetContributionByFacultyId")]
         public async Task<IActionResult> GetContributionByFacultyId(int facultyId)
         {
-            var contributions = _context.Contributions.Where(c => c.users.user_faculty_id == facultyId).ToList();
+            var contributions = _context.Contributions.Where(c => c.users.user_faculty_id == facultyId && c.IsPublic == IsPublic.Public).ToList();
 
             if(contributions.Count <= 0)
             {

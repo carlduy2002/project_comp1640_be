@@ -365,7 +365,7 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> getUserByUserName(string user_username)
         {
             var user = await _context.Users.Where(u => u.user_username == user_username).Select(u => new {
-                u.user_id, u.user_username, u.user_email, u.user_avatar, u.faculties.faculty_name, u.role.role_name
+                u.user_id, u.user_username, u.user_email, u.user_avatar, u.user_faculty_id, u.faculties.faculty_name, u.user_role_id, u.role.role_name, u.user_status
             }).FirstOrDefaultAsync();
 
             if(user == null)
@@ -419,6 +419,9 @@ namespace project_comp1640_be.Controllers
             var userName = httpRequest["userName"];
             var userEmail = httpRequest["userEmail"];
             var userAvatar = httpRequest.Files["uploadImage"];
+            var userFaculty = int.Parse(httpRequest["userFaculty"]);
+            var userRole = int.Parse(httpRequest["userRole"]);
+            var userStatus = httpRequest["userStatus"];
 
             Users user = _context.Users.Where(u => u.user_id == userId).FirstOrDefault();
 
@@ -456,6 +459,13 @@ namespace project_comp1640_be.Controllers
 
             user.user_username = userName;
             user.user_email = userEmail;
+            user.user_faculty_id = userFaculty;
+            user.user_role_id = userRole;
+            user.user_status = user_status.Unlock;
+            if (userStatus.Equals("Lock"))
+            {
+                user.user_status = user_status.Lock;
+            }
 
             _context.Entry(user).State = EntityState.Modified;
             _context.SaveChanges();
