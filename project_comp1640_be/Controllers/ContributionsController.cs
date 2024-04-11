@@ -186,10 +186,10 @@ namespace project_comp1640_be.Controllers
 
                 con.contribution_title = title;
                 con.contribution_submition_date = date;
-                con.IsEnabled = IsEnabled.Enabled;
-                con.IsSelected = IsSelected.Pending;
-                con.IsView = IsView.Unview;
-                con.IsPublic = IsPublic.Private;
+                con.IsEnabled = IsEnabled.Enabled.ToString();
+                con.IsSelected = IsSelected.Pending.ToString();
+                con.IsView = IsView.Unview.ToString();
+                con.IsPublic = IsPublic.Private.ToString();
 
                 _context.Contributions.Add(con);
                 await _context.SaveChangesAsync();
@@ -241,15 +241,14 @@ namespace project_comp1640_be.Controllers
                     .Select(c => c.contribution_submition_date)
                     .FirstOrDefault();
 
-                var getContributionStatus = _context.Contributions
+                var getContribution = _context.Contributions
                     .Where(c => c.contribution_id.Equals(int.Parse(contributionID)))
-                    .Select(c => c.IsSelected)
                     .FirstOrDefault();
 
 
-                //var test = DateTime.Parse("2024-04-09 07:00:00.0000000");
+                var test = DateTime.Parse("2024-04-09 07:00:00.0000000");
 
-                if (getContributionStatus.Equals(IsSelected.Unselected.ToString()))
+                if (getContribution.IsSelected.Equals(IsSelected.Unselected.ToString()) || getContribution.IsSelected.Equals(IsSelected.Pending.ToString()))
                 {
                     if (currentDate < submitDatetime.AddDays(14))
                     {
@@ -275,10 +274,18 @@ namespace project_comp1640_be.Controllers
 
                             con.contribution_id = int.Parse(contributionID);
                             con.contribution_title = title;
+                            con.IsSelected = IsSelected.Unselected.ToString();
+                            con.IsEnabled = getContribution.IsEnabled;
+                            con.IsView = getContribution.IsView;
+                            con.IsPublic = getContribution.IsPublic;
                             //con.contribution_submition_date = DateTime.Parse(submitDate);
 
-                            _context.Contributions.Entry(con).State = EntityState.Modified;
+                            //_context.Contributions.Entry(con).State = EntityState.Modified;
+                            _context.Entry(getContribution).CurrentValues.SetValues(con);
+
                             await _context.SaveChangesAsync();
+
+                            return Ok(new { Message = "Update article succeeded" });
                         }
                         else if (article != null && thumbnailImg == null)
                         {
@@ -313,9 +320,14 @@ namespace project_comp1640_be.Controllers
                             con.contribution_id = int.Parse(contributionID);
                             con.contribution_title = title;
                             con.contribution_content = article.FileName;
+                            con.IsSelected = IsSelected.Unselected.ToString();
+                            con.IsEnabled = getContribution.IsEnabled;
+                            con.IsView = getContribution.IsView;
+                            con.IsPublic = getContribution.IsPublic;
                             //con.contribution_submition_date = DateTime.Parse(submitDate);
 
-                            _context.Contributions.Entry(con).State = EntityState.Modified;
+                            //_context.Entry(con).State = EntityState.Modified;
+                            _context.Entry(getContribution).CurrentValues.SetValues(con);
                             await _context.SaveChangesAsync();
 
                             // get user faculty
@@ -328,6 +340,8 @@ namespace project_comp1640_be.Controllers
 
                             var maketingCondinatorEmail = maketingCondinatorUser.user_email;
                             SendEmail(maketingCondinatorEmail, con.contribution_id);
+
+                            return Ok(new { Message = "Update article succeeded" });
                         }
                         else if (article == null && thumbnailImg != null)
                         {
@@ -362,9 +376,14 @@ namespace project_comp1640_be.Controllers
                             con.contribution_id = int.Parse(contributionID);
                             con.contribution_title = title;
                             con.contribution_image = thumbnailImg.FileName;
+                            con.IsSelected = IsSelected.Unselected.ToString();
+                            con.IsEnabled = getContribution.IsEnabled;
+                            con.IsView = getContribution.IsView;
+                            con.IsPublic = getContribution.IsPublic;
                             //con.contribution_submition_date = DateTime.Parse(submitDate);
 
-                            _context.Contributions.Entry(con).State = EntityState.Modified;
+                            //_context.Entry(con).State = EntityState.Modified;
+                            _context.Entry(getContribution).CurrentValues.SetValues(con);
                             await _context.SaveChangesAsync();
 
                             // get user faculty
@@ -377,6 +396,9 @@ namespace project_comp1640_be.Controllers
 
                             var maketingCondinatorEmail = maketingCondinatorUser.user_email;
                             SendEmail(maketingCondinatorEmail, con.contribution_id);
+
+                            return Ok(new { Message = "Update article succeeded" });
+
                         }
                         else
                         {
@@ -414,9 +436,13 @@ namespace project_comp1640_be.Controllers
                             con.contribution_title = title;
                             con.contribution_content = article.FileName;
                             con.contribution_image = thumbnailImg.FileName;
+                            con.IsSelected = IsSelected.Unselected.ToString();
+                            con.IsEnabled = getContribution.IsEnabled;
+                            con.IsView = getContribution.IsView;
+                            con.IsPublic = getContribution.IsPublic;
                             //con.contribution_submition_date = DateTime.Parse(submitDate);
 
-                            _context.Contributions.Entry(con).State = EntityState.Modified;
+                            _context.Entry(getContribution).CurrentValues.SetValues(con);
                             await _context.SaveChangesAsync();
 
                             // get user faculty
@@ -429,9 +455,11 @@ namespace project_comp1640_be.Controllers
 
                             var maketingCondinatorEmail = maketingCondinatorUser.user_email;
                             SendEmail(maketingCondinatorEmail, con.contribution_id);
+
+                            return Ok(new { Message = "Update article succeeded" });
                         }
 
-                        return Ok(new { Message = "Update article succeeded" });
+                        
                     }
                     else
                     {
@@ -557,7 +585,7 @@ namespace project_comp1640_be.Controllers
         {
             var contributions = await _context.Contributions
                 .Include(c => c.academic_years)
-                .Where(c => c.IsSelected.Equals(IsSelected.Selected))
+                .Where(c => c.IsSelected.Equals(IsSelected.Selected.ToString()))
                 .Select(c => new
                 {
                     contribution_image = c.contribution_image,
@@ -578,7 +606,7 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> GetAllArticlesApprove()
         {
             var contributions = await _context.Contributions
-            .Where(c => c.IsPublic.Equals(IsPublic.Public))
+            .Where(c => c.IsPublic.Equals(IsPublic.Public.ToString()))
                 .ToListAsync();
             return Ok(contributions);
         }
@@ -626,7 +654,7 @@ namespace project_comp1640_be.Controllers
             if (contribution == null)
                 return BadRequest(new { Message = "Cannot change status view" });
 
-            contribution.IsView = IsView.View;
+            contribution.IsView = IsView.View.ToString();
 
             _context.Entry(contribution).State = EntityState.Modified;
             await _context.SaveChangesAsync();
@@ -659,7 +687,7 @@ namespace project_comp1640_be.Controllers
 
             if (currentDate < getAcademicYear)
             {
-                contribution.IsSelected = IsSelected.Selected;
+                contribution.IsSelected = IsSelected.Selected.ToString();
 
                 _context.Entry(contribution).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
@@ -697,7 +725,7 @@ namespace project_comp1640_be.Controllers
 
             if (currentDate < getAcademicYear)
             {
-                contribution.IsSelected = IsSelected.Unselected;
+                contribution.IsSelected = IsSelected.Unselected.ToString();
 
                 _context.Entry(contribution).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
@@ -718,7 +746,7 @@ namespace project_comp1640_be.Controllers
             if (contribution == null)
                 return BadRequest(new { Message = "Cannot change status approve" });
 
-            contribution.IsPublic = IsPublic.Public;
+            contribution.IsPublic = IsPublic.Public.ToString();
 
             _context.Entry(contribution).State = EntityState.Modified;
             await _context.SaveChangesAsync();
@@ -734,8 +762,8 @@ namespace project_comp1640_be.Controllers
             if (contribution == null)
                 return BadRequest(new { Message = "Cannot change status approve" });
 
-            contribution.IsPublic = IsPublic.Private    ;
-            contribution.IsSelected = IsSelected.Selected;
+            contribution.IsPublic = IsPublic.Private.ToString();
+            contribution.IsSelected = IsSelected.Selected.ToString();
 
             _context.Entry(contribution).State = EntityState.Modified;
             await _context.SaveChangesAsync();
@@ -758,7 +786,7 @@ namespace project_comp1640_be.Controllers
         [HttpGet("Download-One-Article")]
         public async Task<IActionResult> DownloadFile(int contribution_id)
         {
-            var contribution = await _context.Contributions.FirstOrDefaultAsync(c => c.contribution_id == contribution_id && c.IsSelected.Equals(IsSelected.Selected));
+            var contribution = await _context.Contributions.FirstOrDefaultAsync(c => c.contribution_id == contribution_id && c.IsSelected.Equals(IsSelected.Selected.ToString()));
 
             if (contribution == null) { return BadRequest(new { Message = "Contribution is not found" }); }
 
@@ -792,7 +820,7 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> DownloadFiles(int faculty_id, int acdemic_year_id)
         {
             var contributions = await _context.Contributions
-                .Where(c => c.users.user_faculty_id == faculty_id && c.contribution_academic_years_id.Equals(acdemic_year_id) && c.IsSelected.Equals(IsSelected.Selected))
+                .Where(c => c.users.user_faculty_id == faculty_id && c.contribution_academic_years_id.Equals(acdemic_year_id) && c.IsSelected.Equals(IsSelected.Selected.ToString()))
                 .ToListAsync();
 
             if (contributions == null) { return BadRequest(new { Message = "Contribution is not found" }); }
@@ -846,7 +874,7 @@ namespace project_comp1640_be.Controllers
                 var contribution = _context.Contributions
                     .Include(c => c.users)
                     .Include(c => c.academic_years)
-                    .Where(c => c.contribution_user_id.Equals(i) && c.IsEnabled.Equals(IsEnabled.Enabled))
+                    .Where(c => c.contribution_user_id.Equals(i) && c.IsEnabled.Equals(IsEnabled.Enabled.ToString()))
                     .Select(c => new ContributionDTO
                     {
                         contribution_id = c.contribution_id,
@@ -896,7 +924,7 @@ namespace project_comp1640_be.Controllers
         [HttpGet("GetContributionByFacultyId")]
         public async Task<IActionResult> GetContributionByFacultyId(int facultyId)
         {
-            var contributions = _context.Contributions.Where(c => c.users.user_faculty_id == facultyId && c.IsPublic == IsPublic.Public).ToList();
+            var contributions = _context.Contributions.Where(c => c.users.user_faculty_id == facultyId && c.IsPublic == IsPublic.Public.ToString()).ToList();
 
             if(contributions.Count <= 0)
             {
@@ -914,7 +942,7 @@ namespace project_comp1640_be.Controllers
                 var contributions = await _context.Contributions
                 .Include(c => c.academic_years)
                 .Include(c => c.users)
-                .Where(c => c.IsSelected.Equals(IsSelected.Selected) && c.contribution_academic_years_id == academic_id
+                .Where(c => c.IsSelected.Equals(IsSelected.Selected.ToString()) && c.contribution_academic_years_id == academic_id
                         && c.users.user_faculty_id == faculty_id)
                 .Select(c => new
                 {
@@ -937,7 +965,7 @@ namespace project_comp1640_be.Controllers
                 var contributions = await _context.Contributions
                 .Include(c => c.academic_years)
                 .Include(c => c.users)
-                .Where(c => c.IsSelected.Equals(IsSelected.Selected) && c.contribution_academic_years_id == academic_id)
+                .Where(c => c.IsSelected.Equals(IsSelected.Selected.ToString()) && c.contribution_academic_years_id == academic_id)
                 .Select(c => new
                 {
                     contribution_image = c.contribution_image,
@@ -959,7 +987,7 @@ namespace project_comp1640_be.Controllers
                 var contributions = await _context.Contributions
                 .Include(c => c.academic_years)
                 .Include(c => c.users)
-                .Where(c => c.IsSelected.Equals(IsSelected.Selected) && c.users.user_faculty_id == faculty_id)
+                .Where(c => c.IsSelected.Equals(IsSelected.Selected.ToString()) && c.users.user_faculty_id == faculty_id)
                 .Select(c => new
                 {
                     contribution_image = c.contribution_image,
