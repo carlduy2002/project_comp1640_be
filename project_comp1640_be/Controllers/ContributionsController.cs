@@ -187,7 +187,7 @@ namespace project_comp1640_be.Controllers
                 con.contribution_title = title;
                 con.contribution_submition_date = date;
                 con.IsEnabled = IsEnabled.Enabled;
-                con.IsSelected = IsSelected.Unselected;
+                con.IsSelected = IsSelected.Pending;
                 con.IsView = IsView.Unview;
                 con.IsPublic = IsPublic.Private;
 
@@ -234,185 +234,201 @@ namespace project_comp1640_be.Controllers
 
                 var thumbnailImg = httpRequest.Files["uploadImage"];
 
-                if (article == null && thumbnailImg == null)
-                {
-                    var con = _context.Contributions
-                    .Where(c => c.contribution_id == int.Parse(contributionID))
-                    .Select(c => new Contributions
-                    {
-                        contribution_id = c.contribution_id,
-                        contribution_title = c.contribution_title,
-                        contribution_content = c.contribution_content,
-                        contribution_image = c.contribution_image,
-                        contribution_submition_date = c.contribution_submition_date,
-                        contribution_academic_years_id = c.contribution_academic_years_id,
-                        contribution_user_id = c.contribution_user_id
-                    })
+                var currentDate = DateTime.UtcNow;
+
+                var submitDatetime = _context.Contributions
+                    .Where(c => c.contribution_id.Equals(int.Parse(contributionID)))
+                    .Select(c => c.contribution_submition_date)
                     .FirstOrDefault();
 
-                    var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
-                    var userId = user.user_id;
-                    con.contribution_user_id = userId;
-
-                    con.contribution_id = int.Parse(contributionID);
-                    con.contribution_title = title;
-                    con.contribution_submition_date = DateTime.Parse(submitDate);
-
-                    _context.Contributions.Entry(con).State = EntityState.Modified;
-                    await _context.SaveChangesAsync();
-                }
-                else if (article != null && thumbnailImg == null)
+                //var test = DateTime.Parse("2024-04-09 07:00:00.0000000");
+                
+                if (currentDate < submitDatetime.AddDays(14))
                 {
-                    var con = _context.Contributions
-                    .Where(c => c.contribution_id == int.Parse(contributionID))
-                    .Select(c => new Contributions
+                    if (article == null && thumbnailImg == null)
                     {
-                        contribution_id = c.contribution_id,
-                        contribution_title = c.contribution_title,
-                        contribution_content = c.contribution_content,
-                        contribution_image = c.contribution_image,
-                        contribution_submition_date = c.contribution_submition_date,
-                        contribution_academic_years_id = c.contribution_academic_years_id,
-                        contribution_user_id = c.contribution_user_id
-                    })
-                    .FirstOrDefault();
+                        var con = _context.Contributions
+                        .Where(c => c.contribution_id == int.Parse(contributionID))
+                        .Select(c => new Contributions
+                        {
+                            contribution_id = c.contribution_id,
+                            contribution_title = c.contribution_title,
+                            contribution_content = c.contribution_content,
+                            contribution_image = c.contribution_image,
+                            contribution_submition_date = c.contribution_submition_date,
+                            contribution_academic_years_id = c.contribution_academic_years_id,
+                            contribution_user_id = c.contribution_user_id
+                        })
+                        .FirstOrDefault();
 
-                    if (IsWordFile(article.FileName))
+                        var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
+                        var userId = user.user_id;
+                        con.contribution_user_id = userId;
+
+                        con.contribution_id = int.Parse(contributionID);
+                        con.contribution_title = title;
+                        //con.contribution_submition_date = DateTime.Parse(submitDate);
+
+                        _context.Contributions.Entry(con).State = EntityState.Modified;
+                        await _context.SaveChangesAsync();
+                    }
+                    else if (article != null && thumbnailImg == null)
                     {
-                        // upload article
-                        con.contribution_content = await SaveFileAsync(article, "Articles");
+                        var con = _context.Contributions
+                        .Where(c => c.contribution_id == int.Parse(contributionID))
+                        .Select(c => new Contributions
+                        {
+                            contribution_id = c.contribution_id,
+                            contribution_title = c.contribution_title,
+                            contribution_content = c.contribution_content,
+                            contribution_image = c.contribution_image,
+                            contribution_submition_date = c.contribution_submition_date,
+                            contribution_academic_years_id = c.contribution_academic_years_id,
+                            contribution_user_id = c.contribution_user_id
+                        })
+                        .FirstOrDefault();
+
+                        if (IsWordFile(article.FileName))
+                        {
+                            // upload article
+                            con.contribution_content = await SaveFileAsync(article, "Articles");
+                        }
+                        else
+                        {
+                            return BadRequest(new { Message = "File Format Not Supported" });
+                        }
+
+                        var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
+                        var userId = user.user_id;
+                        con.contribution_user_id = userId;
+
+                        con.contribution_id = int.Parse(contributionID);
+                        con.contribution_title = title;
+                        con.contribution_content = article.FileName;
+                        //con.contribution_submition_date = DateTime.Parse(submitDate);
+
+                        _context.Contributions.Entry(con).State = EntityState.Modified;
+                        await _context.SaveChangesAsync();
+
+                        // get user faculty
+                        //var userFacultyID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
+
+                        // fine faculty manager and send email
+                        var maketingCondinatorUser = _context.Users
+                            .Where(u => u.user_faculty_id == user.user_faculty_id && u.role.role_name.Equals("Coordinator")).FirstOrDefault();
+
+
+                        var maketingCondinatorEmail = maketingCondinatorUser.user_email;
+                        SendEmail(maketingCondinatorEmail, con.contribution_id);
+                    }
+                    else if (article == null && thumbnailImg != null)
+                    {
+                        var con = _context.Contributions
+                        .Where(c => c.contribution_id == int.Parse(contributionID))
+                        .Select(c => new Contributions
+                        {
+                            contribution_id = c.contribution_id,
+                            contribution_title = c.contribution_title,
+                            contribution_content = c.contribution_content,
+                            contribution_image = c.contribution_image,
+                            contribution_submition_date = c.contribution_submition_date,
+                            contribution_academic_years_id = c.contribution_academic_years_id,
+                            contribution_user_id = c.contribution_user_id
+                        })
+                        .FirstOrDefault();
+
+                        if (IsImageFile(thumbnailImg.FileName))
+                        {
+                            // upload tumbnail img
+                            con.contribution_image = await SaveFileAsync(thumbnailImg, "Imgs");
+                        }
+                        else
+                        {
+                            return BadRequest(new { Message = "File Format Not Supported" });
+                        }
+
+                        var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
+                        var userId = user.user_id;
+                        con.contribution_user_id = userId;
+
+                        con.contribution_id = int.Parse(contributionID);
+                        con.contribution_title = title;
+                        con.contribution_image = thumbnailImg.FileName;
+                        //con.contribution_submition_date = DateTime.Parse(submitDate);
+
+                        _context.Contributions.Entry(con).State = EntityState.Modified;
+                        await _context.SaveChangesAsync();
+
+                        // get user faculty
+                        //var userFacultyID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.faculties.faculty_id).FirstOrDefault();
+
+                        // fine faculty manager and send email
+                        var maketingCondinatorUser = _context.Users
+                            .Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
+
+
+                        var maketingCondinatorEmail = maketingCondinatorUser.user_email;
+                        SendEmail(maketingCondinatorEmail, con.contribution_id);
                     }
                     else
                     {
-                        return BadRequest(new { Message = "File Format Not Supported" });
+                        var con = _context.Contributions
+                        .Where(c => c.contribution_id == int.Parse(contributionID))
+                        .Select(c => new Contributions
+                        {
+                            contribution_id = c.contribution_id,
+                            contribution_title = c.contribution_title,
+                            contribution_content = c.contribution_content,
+                            contribution_image = c.contribution_image,
+                            contribution_submition_date = c.contribution_submition_date,
+                            contribution_academic_years_id = c.contribution_academic_years_id,
+                            contribution_user_id = c.contribution_user_id
+                        })
+                        .FirstOrDefault();
+
+                        if (IsWordFile(article.FileName) && IsImageFile(thumbnailImg.FileName))
+                        {
+                            // upload article
+                            con.contribution_content = await SaveFileAsync(article, "Articles");
+                            // upload tumbnail img
+                            con.contribution_image = await SaveFileAsync(thumbnailImg, "Imgs");
+                        }
+                        else
+                        {
+                            return BadRequest(new { Message = "File Format Not Supported" });
+                        }
+
+                        var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
+                        var userId = user.user_id;
+                        con.contribution_user_id = userId;
+
+                        con.contribution_id = int.Parse(contributionID);
+                        con.contribution_title = title;
+                        con.contribution_content = article.FileName;
+                        con.contribution_image = thumbnailImg.FileName;
+                        //con.contribution_submition_date = DateTime.Parse(submitDate);
+
+                        _context.Contributions.Entry(con).State = EntityState.Modified;
+                        await _context.SaveChangesAsync();
+
+                        // get user faculty
+                        //var userFacultyID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.faculties.faculty_id).FirstOrDefault();
+
+                        // fine faculty manager and send email
+                        var maketingCondinatorUser = _context.Users
+                            .Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
+
+
+                        var maketingCondinatorEmail = maketingCondinatorUser.user_email;
+                        SendEmail(maketingCondinatorEmail, con.contribution_id);
                     }
 
-                    var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
-                    var userId = user.user_id;
-                    con.contribution_user_id = userId;
-
-                    con.contribution_id = int.Parse(contributionID);
-                    con.contribution_title = title;
-                    con.contribution_content = article.FileName;
-                    con.contribution_submition_date = DateTime.Parse(submitDate);
-
-                    _context.Contributions.Entry(con).State = EntityState.Modified;
-                    await _context.SaveChangesAsync();
-
-                    // get user faculty
-                    //var userFacultyID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.user_id).FirstOrDefault();
-
-                    // fine faculty manager and send email
-                    var maketingCondinatorUser = _context.Users
-                        .Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
-
-
-                    var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                    SendEmail(maketingCondinatorEmail, con.contribution_id);
-                }
-                else if (article == null && thumbnailImg != null)
-                {
-                    var con = _context.Contributions
-                    .Where(c => c.contribution_id == int.Parse(contributionID))
-                    .Select(c => new Contributions
-                    {
-                        contribution_id = c.contribution_id,
-                        contribution_title = c.contribution_title,
-                        contribution_content = c.contribution_content,
-                        contribution_image = c.contribution_image,
-                        contribution_submition_date = c.contribution_submition_date,
-                        contribution_academic_years_id = c.contribution_academic_years_id,
-                        contribution_user_id = c.contribution_user_id
-                    })
-                    .FirstOrDefault();
-
-                    if (IsImageFile(thumbnailImg.FileName))
-                    {
-                        // upload tumbnail img
-                        con.contribution_image = await SaveFileAsync(thumbnailImg, "Imgs");
-                    }
-                    else
-                    {
-                        return BadRequest(new { Message = "File Format Not Supported" });
-                    }
-
-                    var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
-                    var userId = user.user_id;
-                    con.contribution_user_id = userId;
-
-                    con.contribution_id = int.Parse(contributionID);
-                    con.contribution_title = title;
-                    con.contribution_image = thumbnailImg.FileName;
-                    con.contribution_submition_date = DateTime.Parse(submitDate);
-
-                    _context.Contributions.Entry(con).State = EntityState.Modified;
-                    await _context.SaveChangesAsync();
-
-                    // get user faculty
-                    //var userFacultyID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.faculties.faculty_id).FirstOrDefault();
-
-                    // fine faculty manager and send email
-                    var maketingCondinatorUser = _context.Users
-                        .Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
-
-
-                    var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                    SendEmail(maketingCondinatorEmail, con.contribution_id);
+                    return Ok(new { Message = "Update article succeeded" });
                 }
                 else
                 {
-                    var con = _context.Contributions
-                    .Where(c => c.contribution_id == int.Parse(contributionID))
-                    .Select(c => new Contributions
-                    {
-                        contribution_id = c.contribution_id,
-                        contribution_title = c.contribution_title,
-                        contribution_content = c.contribution_content,
-                        contribution_image = c.contribution_image,
-                        contribution_submition_date = c.contribution_submition_date,
-                        contribution_academic_years_id = c.contribution_academic_years_id,
-                        contribution_user_id = c.contribution_user_id
-                    })
-                    .FirstOrDefault();
-
-                    if (IsWordFile(article.FileName) && IsImageFile(thumbnailImg.FileName))
-                    {
-                        // upload article
-                        con.contribution_content = await SaveFileAsync(article, "Articles");
-                        // upload tumbnail img
-                        con.contribution_image = await SaveFileAsync(thumbnailImg, "Imgs");
-                    }
-                    else
-                    {
-                        return BadRequest(new { Message = "File Format Not Supported" });
-                    }
-
-                    var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
-                    var userId = user.user_id;
-                    con.contribution_user_id = userId;
-
-                    con.contribution_id = int.Parse(contributionID);
-                    con.contribution_title = title;
-                    con.contribution_content = article.FileName;
-                    con.contribution_image = thumbnailImg.FileName;
-                    con.contribution_submition_date = DateTime.Parse(submitDate);
-
-                    _context.Contributions.Entry(con).State = EntityState.Modified;
-                    await _context.SaveChangesAsync();
-
-                    // get user faculty
-                    //var userFacultyID = _context.Users.Where(u => u.user_username.Equals(username)).Select(u => u.faculties.faculty_id).FirstOrDefault();
-
-                    // fine faculty manager and send email
-                    var maketingCondinatorUser = _context.Users
-                        .Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
-
-
-                    var maketingCondinatorEmail = maketingCondinatorUser.user_email;
-                    SendEmail(maketingCondinatorEmail, con.contribution_id);
+                    return BadRequest(new { Message = "This Contribution Expried Update!" });
                 }
-
-                return Ok(new { Message = "Update article succeeded" });
             }
             catch (Exception ex)
             {
@@ -527,7 +543,20 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> GetAllArticlesSelected()
         {
             var contributions = await _context.Contributions
+                .Include(c => c.academic_years)
                 .Where(c => c.IsSelected.Equals(IsSelected.Selected))
+                .Select(c => new
+                {
+                    contribution_image = c.contribution_image,
+                    contribution_id = c.contribution_id,
+                    contribution_title = c.contribution_title,
+                    contribution_submition_date = c.contribution_submition_date,
+                    contribution_academic_years_id = c.academic_years.academic_year_title,
+                    isPublic = c.IsPublic.ToString(),
+                    isSelected = c.IsSelected.ToString(),
+                    isEnabled = c.IsEnabled.ToString(),
+                    isView = c.IsView.ToString()
+                })
                 .ToListAsync();
             return Ok(contributions);
         }
@@ -597,15 +626,37 @@ namespace project_comp1640_be.Controllers
         {
             var contribution = _context.Contributions.Where(c => c.contribution_id == contribution_id).FirstOrDefault();
 
+            var currentDate = DateTime.UtcNow;
+
+            var academicYearID = _context.Contributions
+                .Where(c => c.contribution_id == contribution_id)
+                .Select(c => c.contribution_academic_years_id)
+                .FirstOrDefault();
+
+            var getAcademicYear = _context.Academic_Years
+                .Where(a => a.academic_year_id == academicYearID)
+                .Select(a => a.academic_year_FinalClosureDate)
+                .FirstOrDefault();
+
             if (contribution == null)
                 return BadRequest(new { Message = "Cannot change status approve" });
 
-            contribution.IsSelected = IsSelected.Selected;
 
-            _context.Entry(contribution).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            //var test = DateTime.Parse("2025-01-01 07:00:00.0000000");
 
-            return Ok(new { Message = "Approve successful!!" });
+            if (currentDate < getAcademicYear)
+            {
+                contribution.IsSelected = IsSelected.Selected;
+
+                _context.Entry(contribution).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return Ok(new {Message = "Approve Succeed"});
+            }
+            else
+            {
+                return BadRequest(new { Message = "This Contribution Expried Approve!" });
+            }
         }
 
 
@@ -614,15 +665,36 @@ namespace project_comp1640_be.Controllers
         {
             var contribution = _context.Contributions.Where(c => c.contribution_id == contribution_id).FirstOrDefault();
 
+            var currentDate = DateTime.UtcNow;
+
+            var academicYearID = _context.Contributions
+               .Where(c => c.contribution_id == contribution_id)
+               .Select(c => c.contribution_academic_years_id)
+               .FirstOrDefault();
+
+            var getAcademicYear = _context.Academic_Years
+                .Where(a => a.academic_year_id == academicYearID)
+                .Select(a => a.academic_year_FinalClosureDate)
+                .FirstOrDefault();
+
             if (contribution == null)
                 return BadRequest(new { Message = "Cannot change status approve" });
 
-            contribution.IsEnabled = IsEnabled.Unenabled;
+            //var test = DateTime.Parse("2025-01-01 07:00:00.0000000");
 
-            _context.Entry(contribution).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            if (currentDate < getAcademicYear)
+            {
+                contribution.IsSelected = IsSelected.Unselected;
 
-            return Ok(new { Message = "Reject successful!!" });
+                _context.Entry(contribution).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return Ok(new {Message = "Reject Succeed"});
+            }
+            else
+            {
+                return BadRequest(new { Message = "This Contribution Expried Reject!" });
+            }
         }
 
         [HttpPut("Public")]
@@ -649,8 +721,8 @@ namespace project_comp1640_be.Controllers
             if (contribution == null)
                 return BadRequest(new { Message = "Cannot change status approve" });
 
-            contribution.IsPublic = IsPublic.Private;
-            contribution.IsSelected = IsSelected.Unselected;
+            contribution.IsPublic = IsPublic.Private    ;
+            contribution.IsSelected = IsSelected.Selected;
 
             _context.Entry(contribution).State = EntityState.Modified;
             await _context.SaveChangesAsync();
@@ -761,8 +833,7 @@ namespace project_comp1640_be.Controllers
                 var contribution = _context.Contributions
                     .Include(c => c.users)
                     .Include(c => c.academic_years)
-                    .Where(c => c.contribution_user_id.Equals(i)
-                            && c.IsPublic.Equals(IsPublic.Private))
+                    .Where(c => c.contribution_user_id.Equals(i) && c.IsEnabled.Equals(IsEnabled.Enabled))
                     .Select(c => new ContributionDTO
                     {
                         contribution_id = c.contribution_id,
@@ -819,6 +890,79 @@ namespace project_comp1640_be.Controllers
                 return BadRequest(new { Message = "Not found" });
             }
             return Ok(contributions);
+        }
+        [HttpGet("search")]
+        public async Task<IActionResult> search(int academic_id, int faculty_id)
+        {
+            List<object> searchContribution = new List<object>();
+
+            if (academic_id != 0 && faculty_id != 0)
+            {
+                var contributions = await _context.Contributions
+                .Include(c => c.academic_years)
+                .Include(c => c.users)
+                .Where(c => c.IsSelected.Equals(IsSelected.Selected) && c.contribution_academic_years_id == academic_id
+                        && c.users.user_faculty_id == faculty_id)
+                .Select(c => new
+                {
+                    contribution_image = c.contribution_image,
+                    contribution_id = c.contribution_id,
+                    contribution_title = c.contribution_title,
+                    contribution_submition_date = c.contribution_submition_date,
+                    contribution_academic_years_id = c.academic_years.academic_year_title,
+                    isPublic = c.IsPublic.ToString(),
+                    isSelected = c.IsSelected.ToString(),
+                    isEnabled = c.IsEnabled.ToString(),
+                    isView = c.IsView.ToString()
+                })
+                .ToListAsync();
+
+                return Ok(contributions);
+            }
+            else if (academic_id != 0 && faculty_id == 0)
+            {
+                var contributions = await _context.Contributions
+                .Include(c => c.academic_years)
+                .Include(c => c.users)
+                .Where(c => c.IsSelected.Equals(IsSelected.Selected) && c.contribution_academic_years_id == academic_id)
+                .Select(c => new
+                {
+                    contribution_image = c.contribution_image,
+                    contribution_id = c.contribution_id,
+                    contribution_title = c.contribution_title,
+                    contribution_submition_date = c.contribution_submition_date,
+                    contribution_academic_years_id = c.academic_years.academic_year_title,
+                    isPublic = c.IsPublic.ToString(),
+                    isSelected = c.IsSelected.ToString(),
+                    isEnabled = c.IsEnabled.ToString(),
+                    isView = c.IsView.ToString()
+                })
+                .ToListAsync();
+
+                return Ok(contributions);
+            }
+            else
+            {
+                var contributions = await _context.Contributions
+                .Include(c => c.academic_years)
+                .Include(c => c.users)
+                .Where(c => c.IsSelected.Equals(IsSelected.Selected) && c.users.user_faculty_id == faculty_id)
+                .Select(c => new
+                {
+                    contribution_image = c.contribution_image,
+                    contribution_id = c.contribution_id,
+                    contribution_title = c.contribution_title,
+                    contribution_submition_date = c.contribution_submition_date,
+                    contribution_academic_years_id = c.academic_years.academic_year_title,
+                    isPublic = c.IsPublic.ToString(),
+                    isSelected = c.IsSelected.ToString(),
+                    isEnabled = c.IsEnabled.ToString(),
+                    isView = c.IsView.ToString()
+                })
+                .ToListAsync();
+
+                return Ok(contributions);
+            }
         }
     }
 }

@@ -20,8 +20,14 @@ namespace project_comp1640_be.Controllers
         [HttpGet]
         public async Task<IActionResult> getAllFaculty()
         {
-            var roles = _context.Faculties.ToList();
-            return Ok(roles);
+            var lstFaculty = _context.Faculties
+                .Where(a => !a.faculty_name.Contains("Account"))
+                .ToList();
+
+            if (lstFaculty.Count == 0)
+                return NotFound();
+
+            return Ok(lstFaculty);
         }
 
         [HttpGet("faculty_name")]

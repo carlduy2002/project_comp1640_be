@@ -1,12 +1,11 @@
-﻿using Aspose.Words.Bibliography;
+﻿//using Aspose.Words.Bibliography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Neo4jClient.DataAnnotations.Cypher.Functions;
 using project_comp1640_be.Data;
 using project_comp1640_be.Model;
-using SkiaSharp;
-using System.Data;
+//using SkiaSharp;
 using System.Linq;
 
 namespace project_comp1640_be.Controllers
@@ -77,6 +76,29 @@ namespace project_comp1640_be.Controllers
                                                         .Count(),
                                         FacultyName = _context.Faculties.Where(f => f.faculty_id == getFaculty).Select(y => y.faculty_name).FirstOrDefault()
                                     }).ToList();
+
+            //var dataStatisticByAcademic = _context.Academic_Years
+            //    .Where(y => y.academic_year_id == academic_year_id)
+            //    .Select(y => new  
+            //    {
+            //        ContributionImages = _context.Contributions
+            //            .Where(c => c.contribution_academic_years_id == y.academic_year_id
+            //                && c.users.user_faculty_id == facultie.faculty_id)
+            //            .Select(c => c.contribution_image)
+            //            .FirstOrDefault(),
+            //        StartDate = y.academic_year_ClosureDate,
+            //        EndDate = y.academic_year_FinalClosureDate, 
+            //        Contributions = _context.Contributions
+            //            .Count(c => c.contribution_academic_years_id == y.academic_year_id
+            //                && c.users.user_faculty_id == facultie.faculty_id), 
+            //        UsersCount = _context.Contributions
+            //            .Where(c => c.users.user_faculty_id == facultie.faculty_id 
+            //                && c.contribution_academic_years_id == y.academic_year_id)
+            //            .GroupBy(c => new { c.contribution_user_id, c.contribution_academic_years_id })
+            //            .Count(),
+            //        FacultyName = facultie.faculty_name 
+            //    }).FirstOrDefault();
+
             return Ok(data);
         }
 
@@ -274,42 +296,173 @@ namespace project_comp1640_be.Controllers
             return Ok(dataStatistic);
         }
 
-        [HttpGet("work-duration")]
-        public async Task<IActionResult> WorkDuration(int user_role_id)
+
+        [HttpGet("statistical_approve_reject")]
+        public async Task<IActionResult> statistical_approve_reject(int academic_id, int faculty_id)
         {
-            const double HoursInDay = 24.0;
+            if (academic_id == null)
+                return BadRequest();
 
-            IQueryable<Users> query = _context.Users;
+            if(faculty_id == null)
+                return BadRequest();
 
-            // Filter users by role if user_role_id is provided
-            if (user_role_id != 0)
-            {
-                query = query.Where(u => u.user_role_id == user_role_id);
-            }
+            var roleID = _context.Roles.Where(r => r.role_name.Equals("Coordinator")).Select(r => r.role_id).FirstOrDefault();
 
-            var dataStatistic = await query
-                .Select(u => new
+            var TotalContribution = (
+                    from c in _context.Contributions
+                    join u in _context.Users on c.contribution_user_id equals u.user_id
+                    join f in _context.Faculties on u.user_faculty_id equals f.faculty_id
+                    where c.contribution_academic_years_id == academic_id && f.faculty_id == faculty_id
+                    select c.contribution_id
+                ).Count();
+
+            var TotalContributor = _context.Users
+                        .Where(u => u.user_faculty_id == faculty_id)
+                        .Select(u => u.user_id)
+                        .Count();
+
+
+            var statisticalDataContributions = _context.Contributions
+                .Where(c => c.contribution_academic_years_id == academic_id)
+                .Select(c => new
                 {
-                    user_id = u.user_id,
-                    user_username = u.user_username,
-                    user_email = u.user_email,
-                    user_role = u.role.role_name,
-                    total_work_duration = u.total_work_duration,
-            average_work_duration = u.Page_Views
-                .Where(p => p.page_view_user_id == u.user_id && p.time_stamp.Date == DateTime.Today)
-                .Sum(p => p.total_time_access / 60) / HoursInDay
-                })
-                .ToListAsync();
+                    faculty_name = _context.Faculties
+                        .Where(f => f.faculty_id == faculty_id)
+                        .Select(f => f.faculty_name)
+                        .FirstOrDefault(),
 
-            // Check if dataStatistic is empty
-            if (dataStatistic == null || !dataStatistic.Any())
-            {
-                return BadRequest(new { Message = "Data is empty" });
-            }
+                    CoordinatorName = _context.Users
+                        .Where(u => u.user_faculty_id == faculty_id && u.user_role_id == roleID)
+                        .Select(u => u.user_username)
+                        .FirstOrDefault(),
 
-            return Ok(dataStatistic);
+                    NumberContributor = TotalContributor,
+
+                    RateSubmit = (((double)TotalContribution / TotalContributor) * 100).ToString("0.00"),
+
+                    NumberContribution = TotalContribution,
+
+                    NumberContributionApproved = _context.Contributions
+                        .Where(c => c.contribution_academic_years_id == academic_id
+                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Selected))
+                        .Select(c => c.contribution_id)
+                        .Count(),
+
+                    NumberContributionRejected = _context.Contributions
+                        .Where(c => c.contribution_academic_years_id == academic_id
+                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Unselected))
+                        .Select(c => c.contribution_id)
+                        .Count(),
+
+                    RateContributionApproved = ((_context.Contributions
+                        .Where(c => c.contribution_academic_years_id == academic_id
+                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Selected))
+                        .Count() / (double)TotalContribution) * 100).ToString("0.00"),
+
+                    RateContributionRejected = ((_context.Contributions
+                        .Where(c => c.contribution_academic_years_id == academic_id
+                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Unselected))
+                        .Count() / (double)TotalContribution) * 100).ToString("0.00"),
+
+                }).FirstOrDefault();
+
+            List<object> st = new List<object>();
+
+            st.Add(statisticalDataContributions);
+
+
+            return Ok(st);
         }
 
+
+        [HttpGet("statistical_approve_reject_chart")]
+        public async Task<IActionResult> statistical_approve_reject_chart(int academic_id)
+        {
+
+            var faculty = _context.Faculties
+                .Where(f => !f.faculty_name.Contains("Admin_Account") && !f.faculty_name.Contains("Manager_Account"))
+                .Select(f => new
+                {
+                    f.faculty_id,
+                    f.faculty_name
+                })
+                .ToList();
+
+            var roleID = _context.Roles.Where(r => r.role_name.Equals("Coordinator")).Select(r => r.role_id).FirstOrDefault();
+
+            var TotalFacultyInYear = (
+                    from f in _context.Faculties
+                    join u in _context.Users on f.faculty_id equals u.user_faculty_id
+                    join c in _context.Contributions on u.user_id equals c.contribution_user_id
+                    join a in _context.Academic_Years on c.contribution_academic_years_id equals a.academic_year_id
+                    where a.academic_year_id == academic_id && !f.faculty_name.Contains("Admin_Account") && !f.faculty_name.Contains("Manager_Account")
+                    select new { f.faculty_name, f.faculty_id }
+                ).ToList();
+
+            List<object> st = new List<object>();
+
+            foreach(var i in faculty)
+            {
+                var TotalContributor = _context.Users
+                        .Where(u => u.user_faculty_id == i.faculty_id)
+                        .Select(u => u.user_id)
+                        .Count();
+
+                var TotalContribution = (
+                        from c in _context.Contributions
+                        join u in _context.Users on c.contribution_user_id equals u.user_id
+                        join f in _context.Faculties on u.user_faculty_id equals f.faculty_id
+                        where c.contribution_academic_years_id == academic_id && f.faculty_id == i.faculty_id
+                        select c.contribution_id).Count();
+
+                var statisticalDataContributions = _context.Contributions
+                .Where(c => c.contribution_academic_years_id == academic_id)
+                .Select(c => new
+                {
+                    faculty_name = i.faculty_name,
+
+                    NumberContributor = TotalContributor,
+
+                    NumberContribution = TotalContribution,
+
+                    NumberContributionApproved = _context.Contributions
+                        .Where(c => c.contribution_academic_years_id == academic_id
+                            && c.users.user_faculty_id == i.faculty_id && c.IsSelected.Equals(IsSelected.Selected))
+                        .Select(c => c.contribution_id)
+                        .Count(),
+
+                    NumberContributionRejected = _context.Contributions
+                        .Where(c => c.contribution_academic_years_id == academic_id
+                            && c.users.user_faculty_id == i.faculty_id && c.IsSelected.Equals(IsSelected.Unselected))
+                        .Select(c => c.contribution_id)
+                        .Count(),
+
+                }).FirstOrDefault();
+
+                st.Add(statisticalDataContributions);
+            }
+            
+            return Ok(st);
+        }
+
+        //[HttpGet("work-duration")]
+        //public async Task<IActionResult> workDuration()
+        //{
+        //    var dataStatistic = await _context.Users
+        //        .Select(u => new {
+        //            user_id = u.user_id,
+        //            user_username = u.user_username,
+        //            user_email = u.user_email,
+        //            user_role = u.role.role_name,
+        //            total_work_duration = u.total_work_duration,
+        //            average_work_duration = u.Page_Views.Where(p => p.page_view_user_id == u.user_id)
+        //                                        .Select(p => p.time_stamp).FirstOrDefault() == DateTime.Now
+        //                                        ? u.total_work_duration : (int)(u.total_work_duration / ((int)(DateTime.Now - u.Page_Views.Where(p => p.page_view_user_id == u.user_id)
+        //                                        .Select(p => p.time_stamp).FirstOrDefault()).TotalSeconds))
+        //        } ).ToListAsync();
+
+        //    return Ok(dataStatistic);
+        //}
 
         [HttpGet("view-access-page-browser")]
         public async Task<IActionResult> viewAccessPageBrowser()
@@ -351,6 +504,42 @@ namespace project_comp1640_be.Controllers
             return Ok(dataStatistic);
         }
 
+        [HttpGet("work-duration")]
+        public async Task<IActionResult> WorkDuration(int user_role_id)
+        {
+            const double HoursInDay = 24.0;
+
+            IQueryable<Users> query = _context.Users;
+
+            // Filter users by role if user_role_id is provided
+            if (user_role_id != 0)
+            {
+                query = query.Where(u => u.user_role_id == user_role_id);
+            }
+
+            var dataStatistic = await query
+                .Select(u => new
+                {
+                    user_id = u.user_id,
+                    user_username = u.user_username,
+                    user_email = u.user_email,
+                    user_role = u.role.role_name,
+                    total_work_duration = u.total_work_duration,
+            average_work_duration = u.Page_Views
+                .Where(p => p.page_view_user_id == u.user_id && p.time_stamp.Date == DateTime.Today)
+                .Sum(p => p.total_time_access / 60) / HoursInDay
+                })
+                .ToListAsync();
+
+            // Check if dataStatistic is empty
+            if (dataStatistic == null || !dataStatistic.Any())
+            {
+                return BadRequest(new { Message = "Data is empty" });
+            }
+
+            return Ok(dataStatistic);
+        }
+
         [HttpGet("chart-guest")]
         public async Task<IActionResult> chartGuest(string username)
         {
@@ -384,137 +573,6 @@ namespace project_comp1640_be.Controllers
             }
 
             return Ok(dataStatistic);
-        }
-
-        [HttpGet("chart-admin")]
-        public async Task<IActionResult> chartAdmin()
-        {
-            var faculties = _context.Faculties
-                        .Where(fa => fa.faculty_name != "Admin_Account" && fa.faculty_name != "Manager_Account").ToList();
-
-            List<Object> dataStatistic = new List<Object>();
-
-            double totalArticle = await _context.Contributions.CountAsync();
-
-            foreach (var facultie in faculties)
-            {
-                var data = _context.Contributions
-                    .Select(c => new
-                    {
-                        facultyName = facultie.faculty_name,
-                        contributors = _context.Contributions
-                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id)
-                                                    .GroupBy(c => c.contribution_user_id).Count(),
-                        articles = _context.Contributions
-                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id).Count(),
-                        percenContributor = Math.Round(((double)(_context.Contributions
-                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id)
-                                                    .GroupBy(c => c.contribution_user_id).Count())/ (double)(_context.Contributions
-                                                    .GroupBy(c => c.contribution_user_id).Count())*100)),
-                        percenArticles = Math.Round((((double)(_context.Contributions
-                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id).Count()))
-                                                     /(totalArticle))*100)
-                    }).FirstOrDefault();
-
-                dataStatistic.Add(data);
-            }
-
-            return Ok(dataStatistic);
-        }
-
-        [HttpGet("page-browser-role-statistic")]
-        public async Task<IActionResult> pageBrowserRoleStatistic(string page_name, string browser_name, string role)
-        {
-            if (page_name == null || browser_name == null || role == null)
-                return BadRequest(new { Message = "Data provided is null" });
-
-            var data = _context.Page_Views.Where(p => p.page_view_name == page_name
-                                                            && p.browser_name == browser_name
-                                                            && p.users.role.role_name == role)
-                                           .GroupBy(p => p.page_view_user_id)
-                                           .Select(pv => new
-                                           {
-                                               pageName = page_name,
-                                               browserName = browser_name,
-                                               username = _context.Users.Where(u => u.user_id == pv.Key).Select(u => u.user_username).FirstOrDefault(),
-                                               totalVisit = _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Count(),
-                                               averageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access)/
-                                               (double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Count() / 3600, 4),
-                                               dailyAverageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access) /
-                                               (((double)(_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
-                                               - _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
-                                               ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
-                                               - _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
-                                               )) / 3600, 4),
-                                               totalTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access) / 3600, 4) 
-                                           }).ToList();
-            return Ok(data);
-        }
-
-        [HttpGet("page-chart")]
-        public async Task<IActionResult> pageChart()
-        {
-            var data = _context.Page_Views
-                               .GroupBy(p => p.page_view_name)
-                               .Select(pv => new
-                               {
-                                   pageName = pv.Key.ToString(),
-                                   totalVisit = _context.Page_Views.Where(p => p.page_view_name == pv.Key).Count(),
-                                   averageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Sum(p => p.total_time_access) /
-                                   (double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Count() / 3600, 4),
-                                   dailyAverageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Sum(p => p.total_time_access) /
-                                   (((double)(_context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
-                                   - _context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
-                                   ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
-                                   - _context.Page_Views.Where(p => p.page_view_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
-                                   )) / 3600, 4),
-                                   totalTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_name == pv.Key).Sum(p => p.total_time_access) / 3600, 4)
-                               }).ToList();
-            return Ok(data);
-        }
-
-        [HttpGet("browser-chart")]
-        public async Task<IActionResult> browserChart()
-        {
-            var data = _context.Page_Views
-                               .GroupBy(p => p.browser_name)
-                               .Select(pv => new
-                               {
-                                   browserName = pv.Key.ToString(),
-                                   totalVisit = _context.Page_Views.Where(p => p.browser_name == pv.Key).Count(),
-                                   averageTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) /
-                                   (double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Count() / 3600, 4),
-                                   dailyAverageTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) /
-                                   (((double)(_context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
-                                   - _context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
-                                   ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
-                                   - _context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
-                                   )) / 3600, 4),
-                                   totalTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) / 3600, 4)
-                               }).ToList();
-            return Ok(data);
-        }
-
-        [HttpGet("role-chart")]
-        public async Task<IActionResult> roleChart()
-        {
-            var data = _context.Page_Views
-                               .GroupBy(p => p.users.role.role_name)
-                               .Select(pv => new
-                               {
-                                   roleName = pv.Key.ToString(),
-                                   totalVisit = _context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Count(),
-                                   averageTime = Math.Round(((double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Sum(p => p.total_time_access) /
-                                   (double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Count()) / 3600, 4),
-                                   dailyAverageTime = Math.Round(((double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Sum(p => p.total_time_access) /
-                                   (((double)(_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
-                                   - _context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
-                                   ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
-                                   - _context.Page_Views.Where(p => p.users.role.role_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
-                                   ))) / 3600, 4),
-                                   totalTime = Math.Round((double)_context.Page_Views.Where(p => p.users.role.role_name == pv.Key).Sum(p => p.total_time_access) / 3600, 4)
-                               }).ToList();
-            return Ok(data);
         }
     }
 }

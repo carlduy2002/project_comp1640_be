@@ -1,16 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace project_comp1640_be.Model
 {
     public class Page_Views
     {
-        [Key] 
+        [Key]
         public int page_view_id { get; set; }
 
         [Required]
         [Column(TypeName = "varchar(100)")]
-        public string page_view_name { get; set;}
+        public string page_view_name { get; set; }
 
         [Required]
         [Column(TypeName = "varchar(100)")]
