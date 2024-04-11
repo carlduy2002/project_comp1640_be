@@ -60,7 +60,7 @@ namespace project_comp1640_be.Controllers
                     .Select(c => c.contribution_submition_date)
                     .FirstOrDefault();
 
-            //var test = DateTime.Parse("2024-04-09 07:00:00.0000000");
+            //var test = DateTime.Parse("2024-04-30 07:00:00.0000000");
 
             if (currentDate < submitDatetime.AddDays(14))
             {
