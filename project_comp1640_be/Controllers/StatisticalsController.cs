@@ -405,7 +405,8 @@ namespace project_comp1640_be.Controllers
             foreach(var i in faculty)
             {
                 var TotalContributor = _context.Users
-                        .Where(u => u.user_faculty_id == i.faculty_id)
+                        .Include(u => u.role)
+                        .Where(u => u.user_faculty_id == i.faculty_id && u.role.role_name.Equals("Student"))
                         .Select(u => u.user_id)
                         .Count();
 
