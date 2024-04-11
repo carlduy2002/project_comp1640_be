@@ -248,7 +248,7 @@ namespace project_comp1640_be.Controllers
 
                 var test = DateTime.Parse("2024-04-09 07:00:00.0000000");
 
-                if (getContribution.IsSelected.Equals(IsSelected.Unselected.ToString()))
+                if (getContribution.IsSelected.Equals(IsSelected.Unselected.ToString()) || getContribution.IsSelected.Equals(IsSelected.Pending.ToString()))
                 {
                     if (currentDate < submitDatetime.AddDays(14))
                     {
