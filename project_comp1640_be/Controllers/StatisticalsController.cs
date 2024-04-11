@@ -317,7 +317,8 @@ namespace project_comp1640_be.Controllers
                 ).Count();
 
             var TotalContributor = _context.Users
-                        .Where(u => u.user_faculty_id == faculty_id)
+                        .Include(u => u.role)
+                        .Where(u => u.user_faculty_id == faculty_id && u.role.role_name.Equals("Student"))
                         .Select(u => u.user_id)
                         .Count();
 
