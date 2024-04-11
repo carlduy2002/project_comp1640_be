@@ -576,5 +576,40 @@ namespace project_comp1640_be.Controllers
 
             return Ok(dataStatistic);
         }
+        [HttpGet("chart-admin")]
+        public async Task<IActionResult> chartAdmin()
+        {
+            var faculties = _context.Faculties
+                        .Where(fa => fa.faculty_name != "Admin_Account" && fa.faculty_name != "Manager_Account").ToList();
+
+            List<Object> dataStatistic = new List<Object>();
+
+            double totalArticle = await _context.Contributions.CountAsync();
+
+            foreach (var facultie in faculties)
+            {
+                var data = _context.Contributions
+                    .Select(c => new
+                    {
+                        facultyName = facultie.faculty_name,
+                        contributors = _context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id)
+                                                    .GroupBy(c => c.contribution_user_id).Count(),
+                        articles = _context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id).Count(),
+                        percenContributor = Math.Round(((double)(_context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id)
+                                                    .GroupBy(c => c.contribution_user_id).Count()) / (double)(_context.Contributions
+                                                    .GroupBy(c => c.contribution_user_id).Count()) * 100)),
+                        percenArticles = Math.Round((((double)(_context.Contributions
+                                                    .Where(c => c.users.faculties.faculty_id == facultie.faculty_id).Count()))
+                                                     / (totalArticle)) * 100)
+                    }).FirstOrDefault();
+
+                dataStatistic.Add(data);
+            }
+
+            return Ok(dataStatistic);
+        }
     }
 }
