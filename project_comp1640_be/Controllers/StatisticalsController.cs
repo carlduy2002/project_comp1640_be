@@ -345,24 +345,24 @@ namespace project_comp1640_be.Controllers
 
                     NumberContributionApproved = _context.Contributions
                         .Where(c => c.contribution_academic_years_id == academic_id
-                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Selected))
+                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Selected.ToString()))
                         .Select(c => c.contribution_id)
                         .Count(),
 
                     NumberContributionRejected = _context.Contributions
                         .Where(c => c.contribution_academic_years_id == academic_id
-                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Unselected))
+                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Unselected.ToString()))
                         .Select(c => c.contribution_id)
                         .Count(),
 
                     RateContributionApproved = ((_context.Contributions
                         .Where(c => c.contribution_academic_years_id == academic_id
-                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Selected))
+                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Selected.ToString()))
                         .Count() / (double)TotalContribution) * 100).ToString("0.00"),
 
                     RateContributionRejected = ((_context.Contributions
                         .Where(c => c.contribution_academic_years_id == academic_id
-                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Unselected))
+                            && c.users.user_faculty_id == faculty_id && c.IsSelected.Equals(IsSelected.Unselected.ToString()))
                         .Count() / (double)TotalContribution) * 100).ToString("0.00"),
 
                 }).FirstOrDefault();
@@ -429,13 +429,13 @@ namespace project_comp1640_be.Controllers
 
                     NumberContributionApproved = _context.Contributions
                         .Where(c => c.contribution_academic_years_id == academic_id
-                            && c.users.user_faculty_id == i.faculty_id && c.IsSelected.Equals(IsSelected.Selected))
+                            && c.users.user_faculty_id == i.faculty_id && c.IsSelected.Equals(IsSelected.Selected.ToString()))
                         .Select(c => c.contribution_id)
                         .Count(),
 
                     NumberContributionRejected = _context.Contributions
                         .Where(c => c.contribution_academic_years_id == academic_id
-                            && c.users.user_faculty_id == i.faculty_id && c.IsSelected.Equals(IsSelected.Unselected))
+                            && c.users.user_faculty_id == i.faculty_id && c.IsSelected.Equals(IsSelected.Unselected.ToString()))
                         .Select(c => c.contribution_id)
                         .Count(),
 
