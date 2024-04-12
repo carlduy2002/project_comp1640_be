@@ -37,9 +37,9 @@ namespace project_comp1640_be.Model
 
         public DateTime? reset_password_exprytime { get; set; }
 
-        public DateTime? last_login {  get; set; }
-        
-        public int? total_work_duration {  get; set; } 
+        public DateTime? last_login { get; set; }
+
+        public int? total_work_duration { get; set; }
 
         [Required]
         [Column(TypeName = "varchar(10)")]

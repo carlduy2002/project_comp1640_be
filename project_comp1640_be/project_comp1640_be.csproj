@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Articles\Input.docx" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Aspose.Words" Version="24.3.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
@@ -27,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Articles\" />
+    <Folder Include="Imgs\" />
   </ItemGroup>
 
 </Project>

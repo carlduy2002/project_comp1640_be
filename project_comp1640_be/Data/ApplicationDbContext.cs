@@ -31,12 +31,6 @@ namespace project_comp1640_be.Data
                 .WithMany(u => u.Marketing_Comments)
                 .HasForeignKey(m => m.comment_user_id)
                 .OnDelete(DeleteBehavior.NoAction);
-
-            modelBuilder.Entity<Marketing_Comments>()
-                .HasOne(m => m.contributions)
-                .WithMany(u => u.Marketing_Comments)
-                .HasForeignKey(m => m.comment_contribution_id)
-                .OnDelete(DeleteBehavior.NoAction);
         }
 
         

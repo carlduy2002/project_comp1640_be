@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Aspose.Words;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using project_comp1640_be.Data;
@@ -52,28 +53,45 @@ namespace project_comp1640_be.Controllers
 
             if (user_id == null) return BadRequest();
 
-            Marketing_Comments marketing_Comments = new Marketing_Comments();
+            var currentDate = DateTime.UtcNow;
 
-            marketing_Comments.comment_content = content;
-            marketing_Comments.comment_date = DateTime.Now;
-            marketing_Comments.comment_user_id = user_id;
-            marketing_Comments.comment_contribution_id = contribution_id;
+            var submitDatetime = _context.Contributions
+                    .Where(c => c.contribution_id.Equals(contribution_id))
+                    .Select(c => c.contribution_submition_date)
+                    .FirstOrDefault();
 
-            _context.Marketing_Comments.Add(marketing_Comments);
-            await _context.SaveChangesAsync();
+            //var test = DateTime.Parse("2024-04-30 07:00:00.0000000");
 
-            return Ok(new { Messasge = "Add Comment Succeed" });
+            if (currentDate < submitDatetime.AddDays(14))
+            {
+                Marketing_Comments marketing_Comments = new Marketing_Comments();
+
+                marketing_Comments.comment_content = content;
+                marketing_Comments.comment_date = DateTime.Now;
+                marketing_Comments.comment_user_id = user_id;
+                marketing_Comments.comment_contribution_id = contribution_id;
+
+                _context.Marketing_Comments.Add(marketing_Comments);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { Message = "Add Comment Succeed" });
+            }
+            else
+            {
+                return BadRequest(new { Message = "This Contribution Expried Comment!" });
+            }
         }
 
         [HttpPost("Update-Comment")]
-        public async Task<IActionResult> UpdateComment(int comment_id, string comments_content)
+        public async Task<IActionResult> UpdateComment(int contribution_id, int comment_id, string comments_content)
         {
-            if(comments_content.Trim().Equals(""))
+            var exitComment = await _context.Marketing_Comments.FindAsync(comment_id);
+
+            if (exitComment != null)
             {
                 return BadRequest(new {Message = "Comment content is empty!!!"});
             }
 
-            var exitComment = await _context.Marketing_Comments.FindAsync(comment_id);
             if (exitComment == null)
             {
                 return NotFound(new { Message = "Comment is not found" });
@@ -89,8 +107,16 @@ namespace project_comp1640_be.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> deleteComment(int comment_id)
+        public async Task<IActionResult> deleteComment(int contribution_id, int comment_id)
         {
+            var submitDate = _context.Contributions.Where(c => c.contribution_id == contribution_id).Select(c => new { c.contribution_submition_date }).FirstOrDefault();
+            var submitDeadline = submitDate.contribution_submition_date.AddDays(14);
+
+            if (submitDeadline < DateTime.Now)
+            {
+                return BadRequest(new { Message = "Can not commnet after 14 days." });
+            }
+
             var comment = _context.Marketing_Comments.Where(c => c.comment_id == comment_id).FirstOrDefault();
 
             if (comment == null)
@@ -101,6 +127,5 @@ namespace project_comp1640_be.Controllers
 
             return Ok();
         }
-
     }
 }

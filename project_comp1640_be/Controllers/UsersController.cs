@@ -12,10 +12,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using project_comp1640_be.Model.Dto;
-//<<<<<<< HEAD
-//using static System.Runtime.InteropServices.JavaScript.JSType;
-//using Neo4jClient.DataAnnotations.Cypher.Functions;
-//=======
 using Microsoft.AspNetCore.Authorization;
 using NETCore.MailKit.Core;
 using IEmailService = project_comp1640_be.UtilityService.IEmailService;
@@ -46,6 +42,7 @@ namespace project_comp1640_be.Controllers
         {
             var lstUsers = _context.Users
                 .Include(u => u.role)
+                .Include(f => f.faculties)
                 .Select(u => new
                 {
                     user_id = u.user_id,
@@ -53,7 +50,8 @@ namespace project_comp1640_be.Controllers
                     user_email = u.user_email,
                     user_faculty = u.faculties.faculty_name,
                     role_name = u.role.role_name,
-                    user_status = u.user_status
+                    user_status = u.user_status,
+                    user_faculty_name = u.faculties.faculty_name
                 })
                 .ToList();
 
@@ -159,6 +157,10 @@ namespace project_comp1640_be.Controllers
             user.refesh_token_exprytime = DateTime.Now.AddDays(1);
             var lastLogin = user.last_login;
             await _context.SaveChangesAsync();
+
+            //var time = DateTime.UtcNow;
+
+            //addTotalWorkDuration(int.Parse(time), username);
 
             return Ok(new TokenApiDto()
             {
@@ -365,7 +367,7 @@ namespace project_comp1640_be.Controllers
         public async Task<IActionResult> getUserByUserName(string user_username)
         {
             var user = await _context.Users.Where(u => u.user_username == user_username).Select(u => new {
-                u.user_id, u.user_username, u.user_email, u.user_avatar, u.faculties.faculty_name, u.role.role_name
+                u.user_id, u.user_username, u.user_email, u.user_avatar, u.user_faculty_id, u.faculties.faculty_name, u.user_role_id, u.role.role_name, u.user_status
             }).FirstOrDefaultAsync();
 
             if(user == null)
@@ -419,6 +421,9 @@ namespace project_comp1640_be.Controllers
             var userName = httpRequest["userName"];
             var userEmail = httpRequest["userEmail"];
             var userAvatar = httpRequest.Files["uploadImage"];
+            var userFaculty = int.Parse(httpRequest["userFaculty"]);
+            var userRole = int.Parse(httpRequest["userRole"]);
+            var userStatus = httpRequest["userStatus"];
 
             Users user = _context.Users.Where(u => u.user_id == userId).FirstOrDefault();
 
@@ -456,6 +461,13 @@ namespace project_comp1640_be.Controllers
 
             user.user_username = userName;
             user.user_email = userEmail;
+            user.user_faculty_id = userFaculty;
+            user.user_role_id = userRole;
+            user.user_status = user_status.Unlock;
+            if (userStatus.Equals("Lock"))
+            {
+                user.user_status = user_status.Lock;
+            }
 
             _context.Entry(user).State = EntityState.Modified;
             _context.SaveChanges();
@@ -482,15 +494,32 @@ namespace project_comp1640_be.Controllers
         {
             if(username == null) { return BadRequest(new { Message = "Data provided is null" }); }
 
-            var user = _context.Users.Where(u => u.user_username == username).FirstOrDefault();
+            var user = _context.Users.Where(u => u.user_username.Equals(username)).FirstOrDefault();
 
             if(user == null) { return BadRequest(new { Message = "User is not found" }); }
 
             return Ok(user.last_login);
         }
 
+        [HttpPost("add-last-login")]
+        public async Task<IActionResult> AddLastLogin(string username)
+        {
+            if (username == null) { return BadRequest(new { Message = "Data provided is null" }); }
+
+            var user = _context.Users.Where(u => u.user_username == username).FirstOrDefault();
+
+            if (user == null) { return BadRequest(new { Message = "User is not found" }); }
+
+            user.last_login = DateTime.Now;
+
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new {Message = "Add last login successfully"});
+        }
+
         [HttpPost("add-total-work-duration")]
-        public async Task<IActionResult> addTotalWorkDuration(int time, string username)
+        public async Task<IActionResult> addTotalWorkDurationgit(int time, string username)
         {
             if(username == null || time == null) { return BadRequest(new {Message = "Data provided is null"}); }
 
@@ -505,5 +534,51 @@ namespace project_comp1640_be.Controllers
 
             return Ok(new {Message = "Add total work duration successfully"});
         }
+
+        //[HttpGet("last-login")]
+        //public async Task<IActionResult> lastLogin(string username)
+        //{
+        //    if (username == null) { return BadRequest(new { Message = "Data provided is null" }); }
+
+        //    var user = _context.Users.Where(u => u.user_username == username).FirstOrDefault();
+
+        //    if (user == null) { return BadRequest(new { Message = "User is not found" }); }
+
+        //    return Ok(user.last_login);
+        //}
+
+        //[HttpPost("add-last-login")]
+        //public async Task<IActionResult> AddLastLogin(string username)
+        //{
+        //    if (username == null) { return BadRequest(new { Message = "Data provided is null" }); }
+
+        //    var user = _context.Users.Where(u => u.user_username == username).FirstOrDefault();
+
+        //    if (user == null) { return BadRequest(new { Message = "User is not found" }); }
+
+        //    user.last_login = DateTime.Now;
+
+        //    _context.Entry(user).State = EntityState.Modified;
+        //    await _context.SaveChangesAsync();
+
+        //    return Ok(new { Message = "Add last login successfully" });
+        //}
+
+        //[HttpPost("add-total-work-duration")]
+        //public async Task<IActionResult> addTotalWorkDuration(int time, string username)
+        //{
+        //    if (username == null || time == null) { return BadRequest(new { Message = "Data provided is null" }); }
+
+        //    var user = _context.Users.Where(u => u.user_username == username).FirstOrDefault();
+
+        //    if (user == null) { return BadRequest(new { Message = "User is not found" }); }
+
+        //    user.total_work_duration += time;
+
+        //    _context.Entry(user).State = EntityState.Modified;
+        //    await _context.SaveChangesAsync();
+
+        //    return Ok(new { Message = "Add total work duration successfully" });
+        //}
     }
 }

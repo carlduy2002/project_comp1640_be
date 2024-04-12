@@ -25,19 +25,19 @@ namespace project_comp1640_be.Model
 
         [Required]
         [Column(TypeName = "varchar(10)")]
-        public IsEnabled IsEnabled { get; set; }
+        public string IsEnabled { get; set; }
 
         [Required]
         [Column(TypeName = "varchar(10)")]
-        public IsSelected IsSelected { get; set; }
+        public string IsSelected { get; set; }
 
         [Required]
         [Column(TypeName = "varchar(10)")]
-        public IsView IsView { get; set; }
+        public string IsView { get; set; }
 
         [Required]
         [Column(TypeName = "varchar(10)")]
-        public IsPublic IsPublic { get; set; }
+        public string IsPublic { get; set; }
 
         [ForeignKey("users")]
         public int contribution_user_id { get; set; }
@@ -57,7 +57,7 @@ namespace project_comp1640_be.Model
 
     public enum IsSelected
     {
-        Selected, Unselected
+        Selected, Unselected, Pending
     }
 
     public enum IsView 
@@ -67,6 +67,6 @@ namespace project_comp1640_be.Model
 
     public enum IsPublic
     {
-        Private, Public
+        Private, Public, NotPublic
     }
 }
