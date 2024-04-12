@@ -245,12 +245,18 @@ namespace project_comp1640_be.Controllers
                     .Where(c => c.contribution_id.Equals(int.Parse(contributionID)))
                     .FirstOrDefault();
 
+                var getAcademicYear = _context.Academic_Years
+                    .Where(a => a.academic_year_id == getContribution.contribution_academic_years_id)
+                    .Select(a => a.academic_year_FinalClosureDate)
+                    .FirstOrDefault();
 
-                var test = DateTime.Parse("2024-04-09 07:00:00.0000000");
+
+                var test = DateTime.Parse("2024-03-1 07:00:00.0000000");
+                //submitDatetime.AddDays(14)
 
                 if (getContribution.IsSelected.Equals(IsSelected.Unselected.ToString()) || getContribution.IsSelected.Equals(IsSelected.Pending.ToString()))
                 {
-                    if (currentDate < submitDatetime.AddDays(14))
+                    if (currentDate < test || currentDate < getAcademicYear)
                     {
                         if (article == null && thumbnailImg == null)
                         {
