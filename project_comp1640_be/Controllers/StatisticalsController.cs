@@ -40,6 +40,7 @@ namespace project_comp1640_be.Controllers
                                                         && c.contribution_academic_years_id == y.academic_year_id)
                                                 .Select(c => c.contribution_image)
                                                 .FirstOrDefault(),
+                        academic_year_title = y.academic_year_title,
                         StartDate = y.academic_year_ClosureDate,
                         EndDate = y.academic_year_FinalClosureDate,
                         Contributions = _context.Contributions
@@ -863,31 +864,26 @@ namespace project_comp1640_be.Controllers
             return Ok(dataStatistic);
         }
         [HttpGet("page-browser-role-statistic")]
-        public async Task<IActionResult> pageBrowserRoleStatistic(string page_name, string browser_name, string role)
+        public async Task<IActionResult> pageBrowserRoleStatistic()
         {
-            if (page_name == null || browser_name == null || role == null)
-                return BadRequest(new { Message = "Data provided is null" });
 
-            var data = _context.Page_Views.Where(p => p.page_view_name == page_name
-                                                            && p.browser_name == browser_name
-                                                            && p.users.role.role_name == role)
-                                           .GroupBy(p => p.page_view_user_id)
-                                           .Select(pv => new
-                                           {
-                                               pageName = page_name,
-                                               browserName = browser_name,
-                                               username = _context.Users.Where(u => u.user_id == pv.Key).Select(u => u.user_username).FirstOrDefault(),
-                                               totalVisit = _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Count(),
-                                               averageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access) /
-                                               (double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Count() / 3600, 4),
-                                               dailyAverageTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access) /
-                                               (((double)(_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
-                                               - _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
-                                               ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
-                                               - _context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+            var data = _context.Page_Views.GroupBy(p => p.browser_name)
+                                          .Select(pv => new
+                                          {
+                                               pageName = "",
+                                               browserName = pv.Key,
+                                               username = "",
+                                               totalVisit = _context.Page_Views.Where(p => p.browser_name == pv.Key).Count(),
+                                               averageTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) /
+                                               (double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Count() / 3600, 4),
+                                               dailyAverageTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) /
+                                               (((double)(_context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                               - _context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
+                                               ) == 0 ? 1 : ((double)(_context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).Last().Day
+                                               - _context.Page_Views.Where(p => p.browser_name == pv.Key).OrderBy(p => p.time_stamp).Select(p => p.time_stamp).FirstOrDefault().Day)
                                                )) / 3600, 4),
-                                               totalTime = Math.Round((double)_context.Page_Views.Where(p => p.page_view_user_id == pv.Key && p.page_view_name == page_name).Sum(p => p.total_time_access) / 3600, 4)
-                                           }).ToList();
+                                               totalTime = Math.Round((double)_context.Page_Views.Where(p => p.browser_name == pv.Key).Sum(p => p.total_time_access) / 3600, 4)
+                                          }).ToList();
             return Ok(data);
         }
         [HttpGet("page-chart")]

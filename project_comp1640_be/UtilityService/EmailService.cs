@@ -18,7 +18,7 @@ namespace project_comp1640_be.UtilityService
             var from = _config["EmailSettings:From"];
             emailMessage.From.Add(new MailboxAddress("Article Contribution System", from));
             emailMessage.To.Add(new MailboxAddress(emailModel.To, emailModel.To));
-            emailModel.Subject = emailMessage.Subject;
+            emailMessage.Subject = emailModel.Subject;
             emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
             {
                 Text = string.Format(emailModel.Content)
