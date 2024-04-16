@@ -12,8 +12,8 @@ using project_comp1640_be.Data;
 namespace projectcomp1640be.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240401082923_v1")]
-    partial class v1
+    [Migration("20240402042558_Migrations")]
+    partial class Migrations
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
