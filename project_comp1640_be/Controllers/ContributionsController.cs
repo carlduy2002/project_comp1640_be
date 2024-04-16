@@ -391,7 +391,7 @@ namespace project_comp1640_be.Controllers
 
                             // fine faculty manager and send email
                             var maketingCondinatorUser = _context.Users
-                                .Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
+                                .Where(u => u.user_faculty_id == user.user_faculty_id && u.role.role_name.Equals("Coordinator")).FirstOrDefault();
 
 
                             var maketingCondinatorEmail = maketingCondinatorUser.user_email;
@@ -450,7 +450,7 @@ namespace project_comp1640_be.Controllers
 
                             // fine faculty manager and send email
                             var maketingCondinatorUser = _context.Users
-                                .Where(u => u.user_faculty_id == user.user_faculty_id && u.user_role_id == 3).FirstOrDefault();
+                                .Where(u => u.user_faculty_id == user.user_faculty_id && u.role.role_name.Equals("Coordinator")).FirstOrDefault();
 
 
                             var maketingCondinatorEmail = maketingCondinatorUser.user_email;
@@ -819,11 +819,41 @@ namespace project_comp1640_be.Controllers
         [HttpGet("Download-Many-Article")]
         public async Task<IActionResult> DownloadFiles(int faculty_id, int acdemic_year_id)
         {
-            var contributions = await _context.Contributions
-                .Where(c => c.users.user_faculty_id == faculty_id && c.contribution_academic_years_id.Equals(acdemic_year_id) && c.IsSelected.Equals(IsSelected.Selected.ToString()))
-                .ToListAsync();
+            var contributions = new List<Contributions>();
 
-            if (contributions == null) { return BadRequest(new { Message = "Contribution is not found" }); }
+            if (faculty_id != 0 && acdemic_year_id != 0)
+            {
+                contributions = await _context.Contributions
+                    .Where(c => c.users.user_faculty_id == faculty_id
+                             && c.contribution_academic_years_id == acdemic_year_id
+                             && c.IsSelected.Equals(IsSelected.Selected.ToString()))
+                    .ToListAsync();
+            }
+            else if (faculty_id != 0 && acdemic_year_id == 0)
+            {
+                contributions = await _context.Contributions
+                    .Where(c => c.users.user_faculty_id == faculty_id
+                             //&& c.academic_years.academic_year_ClosureDate >= DateTime.Now
+                             && c.IsSelected.Equals(IsSelected.Selected.ToString()))
+                    .ToListAsync();
+            }
+            else if (faculty_id == 0 && acdemic_year_id != 0)
+            {
+                contributions = await _context.Contributions
+                    .Where(c => c.contribution_academic_years_id.Equals(acdemic_year_id)
+                             && c.IsSelected.Equals(IsSelected.Selected.ToString()))
+                    .ToListAsync();
+            }   
+            else
+            {
+                contributions = await _context.Contributions
+                    .Where(c => 
+                           //c.academic_years.academic_year_ClosureDate >= DateTime.Now && 
+                           c.IsSelected.Equals(IsSelected.Selected.ToString()))
+                    .ToListAsync();
+            }
+
+            if (contributions == null) { return BadRequest(new { Message = "Can not found Contribution" }); }
 
             List<string> FileNamesList = new List<string>();
             foreach (var contribution in contributions)

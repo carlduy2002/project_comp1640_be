@@ -85,6 +85,7 @@ namespace project_comp1640_be.Controllers
             user.user_confirm_password = PasswordHasher.HashPassword(user.user_confirm_password);
             user.user_status = user_status.Unlock;
             user.user_avatar = "avt.png";
+            user.total_work_duration = 0;
 
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
